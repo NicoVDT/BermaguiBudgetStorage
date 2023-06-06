@@ -31,17 +31,20 @@ h1 {
 
 /* Bottom right text */
 .text-block {
+  margin-left: auto;
+  margin-right: auto;
   position: absolute;
   right: 25%;
   bottom: 50%;
   background: rgba(0, 0, 0, 0.5);
   /* Black background with 0.5 opacity */
   color: white;
-  padding-left: 50px;
-  padding-right: 50px;
+  padding-left: 20%;
+  padding-right: 20%;
   text-align: center;
   font-weight: bold;
   letter-spacing: 2px;
+  border-radius: 50px;
   font-family: Arial, Times, serif;
 
 }
@@ -336,3 +339,28 @@ p {
 }
 
 
+ /* Pricing */
+
+ table {
+  margin-top: 50px;
+  width: 400px;
+  border-spacing: 40px;
+
+}
+
+th {
+    text-align: left;
+    font-size: xx-large;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+table, th, td {
+    border: 1px solid #000;
+    border-collapse: collapse;
+}
+
+.box{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
