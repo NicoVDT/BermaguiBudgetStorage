@@ -45,4 +45,61 @@
       $200 Full container 2.4mx2.4mx6m
       </p>
   </head>
+
+
+
+    <div>
+      <p style ="text-align: left;   padding-left:18%;   display:inline;float:left">Half container</p>
+      <p style="text-align: right;   padding-right:18%;   display:inline;float:right">Full container</p>
+    </div>
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <style>
+        .image-container {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center
+        }
+    
+        .image-container img {
+          width: 22%;
+          max-width: 100%;
+          height: auto;
+          margin: 20px;
+        }
+    
+        @media (max-width: 768px) {
+          .image-container img {
+            width: 50%;
+          }
+        }
+    
+        @media (max-width: 480px) {
+          .image-container img {
+            width: 100%;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="image-container">
+        
+        <img src="static\half.jpg" alt="Image 2">
+        <img src="static\inside.jpg" alt="Image 3">
+        <img src="static\container5.jpg" alt="Image 4">
+        <video width="20%" height="auto" class="round" controls>
+          <source src="static\Video of container.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+      </div>
+    </body>
+    </html>
+   
+    
+      
+    </div>
+</body>
+
  
