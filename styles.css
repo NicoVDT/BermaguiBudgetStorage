@@ -2,6 +2,7 @@ body {
   margin: 0;
   background-color: #f2f2f2;
   font-family: Arial, sans-serif;
+  display: grid;
 }
 
 .header {
@@ -34,7 +35,7 @@ h1 {
   margin-left: auto;
   margin-right: auto;
   position: absolute;
-  right: 25%;
+  right: 7%;
   bottom: 50%;
   background: rgba(0, 0, 0, 0.5);
   /* Black background with 0.5 opacity */
@@ -103,22 +104,26 @@ header {
 /* Photos and details about storage */
 
 .layer {
+  float:left;
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 0px;
+  margin-top: -600px;
   letter-spacing: 2px;
   font-family: Arial, Times, serif;
-  padding: 70px 0px;
+  padding:20px 0px;
 }
 
-.layer img {
-  width: 50%;
-  height: auto;
-  margin-right: 20px;
-  border-radius: 10px;
+.full{
+  float: left;
+  margin-top: 30px;
 }
 
+
+
+.half{
+  margin-left: auto;
+  margin-top: -620px ;
+}
 .layer .text {
   width: 50%;
   font-size: 1.2rem;
@@ -155,161 +160,6 @@ p {
   border-radius: 10px;
 }
 
-/*about page */
-
-body {
-  margin: 0;
-  background-color: #f2f2f2;
-  font-family: Arial, sans-serif;
-}
-
-.header {
-  background-color: #010202;
-}
-
-h1 {
-  font-size: 4rem;
-  color: white;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 20px;
-  border-radius: 10px;
-}
-
-.title {
-  font-weight: bold;
-  letter-spacing: 2px;
-  font-family: Arial, Times, serif;
-
-}
-
-
-/* Container holding the image and the text */
-.header {
-  position: relative;
-}
-
-/* Bottom right text */
-.text-block {
-  position: absolute;
-  right: 25%;
-  bottom: 50%;
-  background: rgba(0, 0, 0, 0.5);
-  /* Black background with 0.5 opacity */
-  color: white;
-  padding-left: 50px;
-  padding-right: 50px;
-  text-align: center;
-  font-weight: bold;
-  letter-spacing: 2px;
-  font-family: Arial, Times, serif;
-
-}
-
-/* Add a white background color to the top navigation */
-.topnav {
-  background-color: #ffffff;
-  overflow: hidden;
-
-}
-
-/* Style the links inside the navigation bar */
-.topnav a {
-  float: right;
-  color: #333;
-  text-align: center;
-  padding: 0.9% 1%;
-  text-decoration: none;
-  font-size: 17px;
-  letter-spacing: 2px;
-  font-family: Arial, Times, serif;
-
-}
-
-.topnav .title {
-  float: left;
-  color: #333;
-  text-align: center;
-  padding: 0.9% 1%;
-  text-decoration: none;
-  font-size: 17px;
-}
-
-
-/* Change the color of links on hover */
-.topnav a:hover {
-  background-color: #cccccc;
-  color: rgb(0, 0, 0);
-}
-
-
-
-/* The sticky class is added to the header with JS when it reaches its scroll position */
-.sticky {
-  position: fixed;
-  top: 0;
-  width: 100%
-}
-
-header {
-  position: sticky;
-  top: 0;
-  z-index: 999;
-}
-
-/* Photos and details about storage */
-
-.layer {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 20px;
-  letter-spacing: 2px;
-  font-family: Arial, Times, serif;
-  padding: 70px 0px;
-}
-
-.layer img {
-  width: 50%;
-  height: auto;
-  margin-right: 20px;
-  border-radius: 10px;
-}
-
-.layer .text {
-  width: 50%;
-  font-size: 1.2rem;
-  line-height: 1.5rem;
-  color: #333;
-}
-
-/* from contact */
-
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 50px;
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0px;
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #4CAF50;
-}
-
-p {
-  text-align: center;
-  margin-top: 0;
-  font-size: 18px;
-}
-
-.round {
-  border-radius: 10px;
-}
 
 /*about page */
 
@@ -335,7 +185,7 @@ p {
 
 
 .portinfo {
-  padding: 2%;
+  padding: 6%;
 }
 
 
