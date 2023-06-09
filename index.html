@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <head>
   <link rel="stylesheet" href="styles.css">
   <title>Bermagui Budget Storage</title>
@@ -22,84 +23,92 @@
   <div class="header">
     <img src="static\attachments\20230421_152832.jpg" alt="Homescreen image" style="width:33%;height:100%;">
     <img src="static\attachments\20230421_152812.jpg" alt="Homescreen image" style="width:33%;height:100%;">
-    <img src="static\sky_(2)-transformed.png" alt="Homescreen image" style="width:33%;height:100%;">
+    <img src="static\sky_(2)-transformed.png" alt="Homescreen image" class="thirdimagefix">
   </div>
-    <div class="text-block">
-      <h4>BERMAGUI BUDGET STORAGE</h4>
-      <p>Secure self-storage for short and long-term storage needs!</p>
-    </div>
+  <div class="text-block">
+    <h4>BERMAGUI BUDGET STORAGE</h4>
+    <p>Secure self-storage for short and long-term storage needs!</p>
   </div>
 
 
-  <head>
-    <h2>What we offer</h2>
-    <p>
-      Bermagui Budget storage is an on-site storage facility.<br> <br>
-      At our secure compound, Bermagui Industrial Estate, <br><br>we rent out space in, (as new condition), shipping containers.<br><br>
-      ​
-      We have two sizes<br>
-      Half containers  and full-size containers<br><br>
-      ​
-      Price per month<br>   
-      $130 1/2 container 2.4mx2.4mx3m<br><br>
-      $200 Full container 2.4mx2.4mx6m
-      </p>
-  </head>
+  <h2>What we offer</h2>
+  <p>
+    Bermagui Budget storage is an on-site storage facility.<br> <br>
+    At our secure compound, Bermagui Industrial Estate, <br><br>we rent out space in, (as new condition), shipping
+    containers.<br><br>
+    ​
+    We have two sizes<br>
+    Half containers and full-size containers<br><br>
+    ​
+    Price per month<br>
+    $130 1/2 container 2.4mx2.4mx3m<br><br>
+    $200 Full container 2.4mx2.4mx6m
+  </p>
 
 
 
-    <div>
-      <p style ="text-align: left;   padding-left:18%;   display:inline;float:left">Half container</p>
-      <p style="text-align: right;   padding-right:18%;   display:inline;float:right">Full container</p>
-    </div>
+  <div>
+    <p style="text-align: left;   padding-left:18%;   display:inline;float:left">Half container</p>
+    <p style="text-align: right;   padding-right:18%;   display:inline;float:right">Full container</p>
+  </div>
+  <style>
+    .image-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center
+    }
 
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <style>
-        .image-container {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center
-        }
-    
-        .image-container img {
-          width: 22%;
-          max-width: 100%;
-          height: auto;
-          margin: 20px;
-        }
-    
-        @media (max-width: 768px) {
-          .image-container img {
-            width: 50%;
-          }
-        }
-    
-        @media (max-width: 480px) {
-          .image-container img {
-            width: 100%;
-          }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="image-container">
-        
-        <img src="static\half.jpg" alt="Image 2">
-        <img src="static\inside.jpg" alt="Image 3">
-        <img src="static\container5.jpg" alt="Image 4">
-        <video width="20%" height="auto" class="round" controls>
-          <source src="static\Video of container.mp4" type="video/mp4">
-          Your browser does not support the video tag.
-      </div>
-    </body>
-    </html>
-   
-    
-      
-    </div>
+    .image-container img {
+      width: 22%;
+      max-width: 100%;
+      height: auto;
+      margin: 20px;
+    }
+
+    .thirdimagefix {
+      width: 33%;
+      height: 100%
+    }
+
+    @media (max-width: 904px) {
+      .thirdimagefix {
+        width: 31.5%;
+      }
+    }
+
+    @media (max-width: 371px) {
+      .thirdimagefix {
+        width: 30%;
+      }
+
+      .thirdimagefix::after {
+        content: "OMG IT WORKED MAYBE";
+      }
+    }
+
+    @media (max-width: 768px) {
+      .image-container img {
+        width: 50%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .image-container img {
+        width: 100%;
+      }
+    }
+  </style>
+  <div class="image-container">
+
+    <img src="static\half.jpg" alt="Image 2">
+    <img src="static\inside.jpg" alt="Image 3">
+    <img src="static\container5.jpg" alt="Image 4">
+    <video width="20%" height="auto" class="round" controls>
+      <source src="static\Video of container.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </div>
+
+
 </body>
-
- 
+</html>
