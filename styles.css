@@ -32,6 +32,9 @@ h1 {
 
 /* Bottom right text */
 .text-block {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   position: absolute;
   bottom: 50%;
   place-self: center;
