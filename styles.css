@@ -60,10 +60,10 @@ h1 {
   float: right;
   color: #333;
   text-align: center;
-  padding: 0.9% 1%;
+  padding: 0.9% 0.75%;
   text-decoration: none;
-  font-size: 77%;
-  letter-spacing: 2px;
+  font-size: 96%;
+  letter-spacing: 1px;
   font-family: Arial, Times, serif;
 
 }
@@ -74,7 +74,7 @@ h1 {
   text-align: center;
   padding: 0.9% 1%;
   text-decoration: none;
-  font-size: 75%;
+  font-size: 85%;
 }
 
 
