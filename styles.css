@@ -197,6 +197,12 @@ padding: 5px;
   max-width: 100%;
   
 }
+.internetimages {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  justify-content: space-around;
+}
 
 .internetimg{
   width:30%;
