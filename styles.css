@@ -175,20 +175,34 @@ padding: 5px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 50px;
+  margin-top: 3%;
   background-color: white;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0px;
 }
 
-.about img {
-  width: 300px;
-  height: 200px;
-  margin-top: 20px;
-  border-radius: 10px;
+.aboutimage {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  justify-content: space-around;
+  
+  height: auto;
+  margin: 1%;
 }
 
+.item{
+  border-radius: 15%;
+  max-width: 100%;
+  
+}
+
+.internetimg{
+  width:30%;
+  height:auto;
+  max-width: 100%;
+}
 /* containerinfo section */
 
 
