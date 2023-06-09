@@ -33,7 +33,7 @@ h1 {
 /* Bottom right text */
 .text-block {
   position: absolute;
-  bottom: 72%;
+  bottom: 76%;
   place-self: center;
   background: rgba(0, 0, 0, 0.5);
   /* Black background with 0.5 opacity */
