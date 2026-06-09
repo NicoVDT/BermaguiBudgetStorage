@@ -6,7 +6,7 @@
    over the Tailscale funnel. */
 (function () {
   "use strict";
-  var API = "https://bermagui-storage.tail28b3e2.ts.net/chat/";
+  var API = "https://bermagui-storage.tail28b3e2.ts.net/chat/stream/";
   var PHONE = "0458 131 471";
 
   // ---- styles (themed to match the site: cream / charcoal / rust) ----
@@ -35,6 +35,7 @@
   .bbsMsg.typing span:nth-child(2){animation-delay:.2s;}
   .bbsMsg.typing span:nth-child(3){animation-delay:.4s;}
   @keyframes bbsBlink{0%,80%,100%{opacity:.25;transform:translateY(0);}40%{opacity:1;transform:translateY(-4px);}}
+  .bbsNote{font-size:11px;line-height:1.35;color:#8a857b;text-align:center;padding:2px 16px 10px;}
   #bbsChatForm{display:flex;gap:8px;padding:10px;background:#fff;border-top:1px solid rgba(26,26,24,.1);}
   #bbsChatInput{flex:1;border:1px solid rgba(26,26,24,.2);border-radius:9px;padding:9px 11px;
     font-size:14px;font-family:inherit;outline:none;}
@@ -81,6 +82,9 @@
     box.style.display = open ? "none" : "flex";
     if (!open && !log.childElementCount) {
       add("bot", "G'day! Ask me about our storage options, sizes, pricing or how to get started.");
+      var note = el("div", { className: "bbsNote",
+        textContent: "This is an AI assistant and can occasionally get things wrong — please confirm anything important by calling us on " + PHONE + "." });
+      log.appendChild(note);
     }
   }
   btn.onclick = toggle;
@@ -104,10 +108,25 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: history })
       });
-      var data = await r.json();
-      thinking.classList.remove("typing");
-      thinking.textContent = data.reply || data.error || "Sorry, please try again.";
-      if (data.reply) history.push({ role: "assistant", content: data.reply });
+      if (!r.ok || !r.body) throw new Error("stream unavailable");
+      // Read the reply as it streams in, showing it build up live.
+      var reader = r.body.getReader(), decoder = new TextDecoder(), full = "", started = false;
+      while (true) {
+        var res = await reader.read();
+        if (res.done) break;
+        var piece = decoder.decode(res.value, { stream: true });
+        if (!piece) continue;
+        if (!started) { thinking.classList.remove("typing"); thinking.textContent = ""; started = true; }
+        full += piece;
+        thinking.textContent = full;
+        log.scrollTop = log.scrollHeight;
+      }
+      if (full.trim()) {
+        history.push({ role: "assistant", content: full });
+      } else {
+        thinking.classList.remove("typing");
+        thinking.textContent = "Sorry, please try again.";
+      }
     } catch (_) {
       thinking.classList.remove("typing");
       thinking.textContent = "Sorry, something went wrong. Please call us on " + PHONE + ".";
