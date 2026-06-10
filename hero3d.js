@@ -29,11 +29,13 @@
     } catch (_) { return false; }
   }
 
-  // Fall back to the static layout if we can't (or shouldn't) run 3D.
-  if (reduced || !webglOK() || !window.THREE) {
+  // Fall back to the static photo only if 3D genuinely can't run. Reduced-motion
+  // users still get the 3D container, just rendered statically (no animation).
+  if (!webglOK() || !window.THREE) {
     docEl.classList.add("no3d");
     return;
   }
+  if (reduced) docEl.classList.add("static3d");
 
   var T = window.THREE;
   var hasGSAP = !!(window.gsap && window.ScrollTrigger);
@@ -314,7 +316,7 @@
   // ----- assembly animation on load -----
   var assembled = false;
   function assemble() {
-    if (!hasGSAP) {
+    if (!hasGSAP || reduced) {
       // No GSAP: just snap to home and show.
       parts.forEach(function (p) {
         p.position.copy(p.userData.home.p); p.rotation.copy(p.userData.home.r);
@@ -349,6 +351,7 @@
   var doorsOpen = false;
   function setDoors(open, dur) {
     doorsOpen = open;
+    if (reduced) dur = 0.25;   // user-initiated, keep it brief
     if (!hasGSAP) {
       doorL.rotation.y = open ? doorL.userData.open : 0;
       doorR.rotation.y = open ? doorR.userData.open : 0;
@@ -378,7 +381,7 @@
   });
 
   // ----- drag to spin + mouse parallax tilt -----
-  var spinVel = 0, dragging = false, lastX = 0, autoSpin = 0.0016;
+  var spinVel = 0, dragging = false, lastX = 0, autoSpin = reduced ? 0 : 0.0016;
   var tiltX = 0, tiltY = 0, targetTiltX = 0, targetTiltY = 0;
   var lastInteract = performance.now();
   function pokeIdle() { lastInteract = performance.now(); }
@@ -407,9 +410,9 @@
     });
   }
 
-  // ----- scroll choreography -----
+  // ----- scroll choreography (skipped under reduced motion: static pose) -----
   var scrollProg = 0;     // 0..1 across the hero stage
-  if (hasGSAP) {
+  if (hasGSAP && !reduced) {
     ScrollTrigger.create({
       trigger: stage,
       start: "top top",
@@ -466,7 +469,7 @@
       root.position.y += (targetPosY - root.position.y) * 0.1;
 
       // idle bob + breathing when untouched and at the top
-      if (idle && p < 0.1) {
+      if (idle && p < 0.1 && !reduced) {
         var b = Math.sin(now * 0.0012);
         root.position.y = targetPosY + b * 0.06;
         root.rotation.z = Math.sin(now * 0.0009) * 0.006;
@@ -475,7 +478,7 @@
       }
 
       // mouse / gyro parallax tilt (only near the top, before scroll takes over)
-      var tiltStrength = Math.max(0, 1 - p * 4);
+      var tiltStrength = reduced ? 0 : Math.max(0, 1 - p * 4);
       tiltX += (targetTiltX * tiltStrength - tiltX) * 0.06;
       tiltY += (targetTiltY * tiltStrength - tiltY) * 0.06;
       camera.position.x = 8.5 + tiltY * 6;

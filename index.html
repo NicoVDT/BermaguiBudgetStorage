@@ -371,6 +371,11 @@
       .price-card:hover .price-photo img { transform: none; }
       .scroll-cue { display: none; }
     }
+    /* static3d: reduced-motion PCs still get the 3D container, rendered without
+       animation; the scroll stage collapses to one viewport. */
+    html.static3d #heroStage { height: 100vh; }
+    html.static3d .scroll-cue, html.static3d .hero-stageword { display: none; }
+    html.static3d .hero-hint { opacity: 1 !important; }
     /* Static-hero mode: set on <html> by JS when WebGL is unavailable or reduced-motion. */
     html.no3d #heroStage { height: auto; }
     html.no3d #heroSticky { position: relative; height: auto; min-height: 92vh; }
@@ -637,7 +642,7 @@
   <script src="vendor/three.min.js?v=2"></script>
   <script src="vendor/gsap.min.js?v=2"></script>
   <script src="vendor/ScrollTrigger.min.js?v=2"></script>
-  <script src="hero3d.js?v=2" defer></script>
+  <script src="hero3d.js?v=3" defer></script>
   <script src="chat-widget.js?v=2" defer></script>
 </body>
 </html>
