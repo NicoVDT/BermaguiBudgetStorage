@@ -38,7 +38,7 @@
   .bbsNote{font-size:11px;line-height:1.35;color:#8a857b;text-align:center;padding:2px 16px 10px;}
   #bbsChatForm{display:flex;gap:8px;padding:10px;background:#fff;border-top:1px solid rgba(26,26,24,.1);}
   #bbsChatInput{flex:1;border:1px solid rgba(26,26,24,.2);border-radius:2px;padding:9px 11px;
-    font-size:14px;font-family:inherit;outline:none;}
+    font-size:16px;font-family:inherit;outline:none;}
   #bbsChatInput:focus{border-color:#c0510a;}
   #bbsChatSend{border:none;background:#c0510a;color:#fff;border-radius:2px;padding:0 15px;
     font-size:15px;cursor:pointer;}
@@ -50,6 +50,7 @@
 
   // ---- DOM ----
   var btn = el("button", { id: "bbsChatBtn", title: "Chat with us", innerHTML: "💬" });
+  btn.setAttribute("aria-label", "Chat with us");
   var box = el("div", { id: "bbsChatBox" });
   box.innerHTML =
     '<div id="bbsChatHead"><span>Ask us anything<small>Bermagui Budget Storage</small></span>' +

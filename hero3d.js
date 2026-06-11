@@ -492,6 +492,14 @@
 
     // camera flies along keyframes by scroll; parallax nudges only near the top
     cameraAt(p);
+    // Portrait phones: at the very top the headline sits over the box, so ease
+    // the framing down (and slightly back) until the copy scrolls away.
+    if (camera.aspect < 0.75) {
+      var lift = Math.max(0, 1 - p / 0.16);
+      _ct.y += lift * 1.5;
+      _cp.x *= 1 + lift * 0.12;
+      _cp.z *= 1 + lift * 0.12;
+    }
     var strength = Math.max(0, 1 - p * 5);
     tiltX += (targetTiltX * strength - tiltX) * 0.06;
     tiltY += (targetTiltY * strength - tiltY) * 0.06;
