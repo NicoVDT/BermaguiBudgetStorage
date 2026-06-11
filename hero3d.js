@@ -142,19 +142,28 @@
     }
     var t = new T.CanvasTexture(c);
     t.wrapS = t.wrapT = T.RepeatWrapping;
+    t.anisotropy = renderer.capabilities.getMaxAnisotropy();
     return t;
   }
-  // Corrugation bump (vertical bands).
+  // Corrugation bump (vertical bands). A taller canvas + anisotropic filtering
+  // are essential: at grazing angles near the floor the fine vertical stripes
+  // otherwise alias into a shimmering moiré band (the "flickering" at the
+  // bottom edge). Anisotropy + mipmaps resolve those stripes cleanly.
   function corrugation(reps) {
-    var c = cv(512, 8), g = c.getContext("2d");
+    var c = cv(512, 64), g = c.getContext("2d");
     for (var i = 0; i < reps; i++) {
       var w = 512 / reps, x0 = w * i, grd = g.createLinearGradient(x0, 0, x0 + w, 0);
       grd.addColorStop(0.0, "#2a2a2a"); grd.addColorStop(0.3, "#ffffff");
       grd.addColorStop(0.5, "#f4f4f4"); grd.addColorStop(0.7, "#ffffff");
       grd.addColorStop(1.0, "#161616");
-      g.fillStyle = grd; g.fillRect(x0, 0, w, 8);
+      g.fillStyle = grd; g.fillRect(x0, 0, w, 64);
     }
-    var t = new T.CanvasTexture(c); t.wrapS = t.wrapT = T.RepeatWrapping; return t;
+    var t = new T.CanvasTexture(c);
+    t.wrapS = t.wrapT = T.RepeatWrapping;
+    t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    t.generateMipmaps = true;
+    t.minFilter = T.LinearMipmapLinearFilter;
+    return t;
   }
 
   var TAN = 0xc2a567;   // clean warm tan, matches the real fleet
@@ -212,19 +221,19 @@
   // Walls run slightly TALLER than the gap so they overlap into the roof/floor
   // slabs instead of meeting them on the same plane (no coplanar z-fight).
   var wallH = H - 0.12;
-  var backWall = box(wall, wallH, W, tanMat(12));
+  var backWall = box(wall, wallH, W, tanMat(9));
   backWall.position.set(-L / 2 + wall / 2, 0, 0);
   root.add(backWall); register(backWall, [-11, 1, -5], [0, 0.6, 0]);
 
-  var leftWall = box(L - 0.1, wallH, wall, tanMat(44));
+  var leftWall = box(L - 0.1, wallH, wall, tanMat(22));
   leftWall.position.set(0, 0, -W / 2 + wall / 2);
   root.add(leftWall); register(leftWall, [-4, 3, -12], [0.4, 0, 0]);
 
-  var rightWall = box(L - 0.1, wallH, wall, tanMat(44));
+  var rightWall = box(L - 0.1, wallH, wall, tanMat(22));
   rightWall.position.set(0, 0, W / 2 - wall / 2);
   root.add(rightWall); register(rightWall, [3, 2, 12], [-0.4, 0, 0]);
 
-  var roof = box(L, 0.1, W, tanMat(40));
+  var roof = box(L, 0.1, W, tanMat(22));
   roof.position.set(0, H / 2 - 0.05, 0);
   root.add(roof); register(roof, [0, 11, 0], [0, 0, 0.34]);
 
@@ -255,7 +264,7 @@
     var pivot = new T.Group();
     pivot.position.set(L / 2 - 0.03, 0, sign * (W / 2 - 0.05));
     var leaf = new T.Group();
-    var dp = box(0.06, H - 0.2, W / 2 - 0.08, tanMat(8));
+    var dp = box(0.06, H - 0.2, W / 2 - 0.08, tanMat(4));
     dp.position.set(0, 0, -sign * (W / 4 - 0.04)); leaf.add(dp);
     var gasket = box(0.02, H - 0.16, W / 2 - 0.02, gasketMat);
     gasket.position.set(-0.04, 0, -sign * (W / 4 - 0.04)); leaf.add(gasket);
