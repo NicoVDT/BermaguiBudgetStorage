@@ -371,13 +371,16 @@
 
   // ----- camera keyframes (Apple-style orbit) -----
   // [progress, camX,camY,camZ, tgtX,tgtY,tgtZ]
+  // All keyframes sit on a ~15m orbit and target the container centre, so the
+  // whole box stays framed the same way through every chapter — no awkward
+  // close-ups. The 0.61 key faces the door end square-on while the doors are
+  // open (doors open 0.5–0.9). Keys line up with the caption windows.
   var KF = [
     [0.00,  9.0, 4.6, 12.5,  0.0, 0.3, 0.0],
-    [0.20,  1.0, 3.4, 13.5,  0.0, 0.2, 0.0],
-    [0.40, 11.5, 2.7,  6.5,  0.0, 0.1, 0.0],
-    [0.58,  8.6, 1.7,  8.2,  0.6, 0.0, 1.4],
-    [0.74,  3.6, 1.5,  6.0, -1.0, 0.1, 0.0],
-    [0.90,  9.0, 4.3, 12.5,  0.0, 0.4, 0.0],
+    [0.23,  3.0, 2.8, 14.5,  0.0, 0.2, 0.0],   // long side, low hero angle
+    [0.42, -8.5, 3.6, 12.0,  0.0, 0.2, 0.0],   // opposite three-quarter
+    [0.61, 13.5, 2.6,  7.5,  0.0, 0.1, 0.0],   // facing the open doors
+    [0.80, 11.0, 4.8, 10.0,  0.0, 0.3, 0.0],   // elevated front, doors open
     [1.00,  9.0, 4.6, 12.5,  0.0, 0.3, 0.0]
   ];
   var _cp = new T.Vector3(), _ct = new T.Vector3();
@@ -481,7 +484,10 @@
     spinVel *= 0.92;
     if (!dragging) spinOffset += (idle && p < 0.06 ? 0.0014 : 0);
     var idleBob = (idle && p < 0.08) ? Math.sin(now * 0.0011) * 0.05 : 0;
-    root.rotation.y = -0.42 + spinOffset;
+    // Scroll-lock the heading: any drag spin / idle drift fades out by ~20%
+    // scroll, so every chapter always frames the exact same side of the box
+    // (doors face the camera in the doors chapter, however long you idled).
+    root.rotation.y = -0.42 + spinOffset * Math.max(0, 1 - p * 5);
     root.position.y += ((H / 2 + idleBob) - root.position.y) * 0.1;
 
     // camera flies along keyframes by scroll; parallax nudges only near the top
