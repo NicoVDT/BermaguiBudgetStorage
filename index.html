@@ -218,9 +218,25 @@
     }
     @keyframes cueDrop { 0%{opacity:0;transform:translateY(0);} 30%{opacity:1;} 70%{opacity:1;transform:translateY(12px);} 100%{opacity:0;transform:translateY(16px);} }
 
+    /* ---------- STATEMENT BAND (dark bridge out of the hero) ---------- */
+    .statement {
+      background: var(--ink); color: var(--bone);
+      padding: 7rem 24px; text-align: center;
+    }
+    .statement .inner { max-width: 1000px; margin: 0 auto; }
+    .statement .eyebrow {
+      font-size: 0.8rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--pine-soft); margin-bottom: 1.6rem;
+    }
+    .statement h2 {
+      font-family: 'Cabinet Grotesk', sans-serif; font-weight: 800;
+      font-size: clamp(2rem, 5vw, 3.8rem); line-height: 1.06; letter-spacing: -0.025em;
+    }
+    .statement h2 .dim { color: rgba(245,240,232,0.4); }
+
     /* ---------- TRUST STRIP ---------- */
     .trust {
-      border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
       background: var(--bone-2);
     }
     .trust-grid {
@@ -236,49 +252,60 @@
     .trust-cell span { color: var(--moss); font-size: 0.95rem; }
 
     /* ---------- SECTIONS ---------- */
-    section { padding: 6.5rem 0; }
+    section { padding: 8rem 0; }
     .sec-head {
-      max-width: 1280px; margin: 0 auto 3.2rem; padding: 0 24px;
+      max-width: 760px; margin: 0 auto 4rem; padding: 0 24px; text-align: center;
+    }
+    .sec-head .eyebrow {
+      display: inline-block; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--pine); margin-bottom: 1rem;
     }
     .sec-head h2 {
       font-family: 'Cabinet Grotesk', sans-serif; font-weight: 800;
-      font-size: clamp(1.9rem, 3.4vw, 2.8rem); letter-spacing: -0.02em;
-      margin-bottom: 0.8rem;
+      font-size: clamp(2.1rem, 4.4vw, 3.4rem); letter-spacing: -0.025em; line-height: 1.05;
+      margin-bottom: 1rem;
     }
-    .sec-head p { color: var(--moss); font-size: 1.05rem; max-width: 58ch; line-height: 1.6; }
+    .sec-head p { color: var(--moss); font-size: 1.12rem; line-height: 1.6; margin: 0 auto; }
 
     /* ---------- PRICING ---------- */
     .price-grid {
-      max-width: 1280px; margin: 0 auto; padding: 0 24px;
-      display: grid; grid-template-columns: 7fr 5fr; gap: 1.5rem;
+      max-width: 1080px; margin: 0 auto; padding: 0 24px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.8rem;
       align-items: stretch;
     }
     .price-card {
-      background: #fbfaf6; border: 1px solid var(--line); border-radius: var(--radius);
-      overflow: hidden; display: flex; flex-direction: column;
+      position: relative; background: #fbfaf6; border: 1px solid var(--line);
+      border-radius: 10px; overflow: hidden; display: flex; flex-direction: column;
+      transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease, border-color 0.3s;
     }
+    .price-card:hover { transform: translateY(-6px); box-shadow: 0 24px 50px rgba(26,26,24,0.13); }
     .price-card.featured { border-color: var(--pine); }
-    .price-photo { aspect-ratio: 16 / 8; overflow: hidden; background: var(--tan); }
-    .price-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
-    .price-card:hover .price-photo img { transform: scale(1.03); }
-    .price-body { padding: 1.8rem 1.8rem 2rem; flex: 1; display: flex; flex-direction: column; }
+    .price-tag {
+      position: absolute; top: 1rem; right: 1rem; z-index: 2;
+      background: var(--pine); color: var(--bone); font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase; padding: 0.35rem 0.7rem; border-radius: 2px;
+    }
+    .price-photo { aspect-ratio: 16 / 10; overflow: hidden; background: var(--tan); }
+    .price-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+    .price-card:hover .price-photo img { transform: scale(1.05); }
+    .price-body { padding: 2.2rem 2.2rem 2.4rem; flex: 1; display: flex; flex-direction: column; }
     .price-name {
-      font-family: 'Cabinet Grotesk', sans-serif; font-weight: 800; font-size: 1.35rem;
-      margin-bottom: 0.2rem;
+      font-family: 'Cabinet Grotesk', sans-serif; font-weight: 700; font-size: 1.05rem;
+      text-transform: uppercase; letter-spacing: 0.05em; color: var(--moss); margin-bottom: 0.6rem;
     }
     .price-amount {
       font-family: 'Cabinet Grotesk', sans-serif; font-weight: 800;
-      font-size: 2.4rem; letter-spacing: -0.02em; color: var(--pine);
+      font-size: clamp(3rem, 5vw, 4rem); letter-spacing: -0.03em; color: var(--ink); line-height: 1;
     }
-    .price-amount small { font-size: 1rem; font-weight: 500; color: var(--moss); letter-spacing: 0; }
-    .price-dims { color: var(--moss); font-size: 0.92rem; margin: 0.3rem 0 1.1rem; }
+    .price-amount small { font-size: 1.05rem; font-weight: 500; color: var(--moss); letter-spacing: 0; }
+    .price-dims { color: var(--moss); font-size: 0.98rem; margin: 0.6rem 0 1.4rem; }
     .price-fits {
-      border-top: 1px solid var(--line); padding-top: 1.1rem; margin-top: auto;
-      font-size: 0.98rem; line-height: 1.55;
+      border-top: 1px solid var(--line); padding-top: 1.3rem; margin-top: auto;
+      font-size: 1.02rem; line-height: 1.55;
     }
     .price-foot {
-      max-width: 1280px; margin: 1.6rem auto 0; padding: 0 24px;
-      color: var(--moss); font-size: 0.95rem; line-height: 1.6; max-width: 70ch;
+      max-width: 60ch; margin: 2.4rem auto 0; padding: 0 24px; text-align: center;
+      color: var(--moss); font-size: 1rem; line-height: 1.6;
     }
 
     /* ---------- FACILITY GALLERY ---------- */
@@ -299,19 +326,22 @@
 
     /* ---------- HOW IT WORKS ---------- */
     .steps {
-      max-width: 1280px; margin: 0 auto; padding: 0 24px;
-      display: grid; grid-template-columns: 1fr; gap: 0;
+      max-width: 1080px; margin: 0 auto; padding: 0 24px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;
+      counter-reset: step;
     }
-    .step {
-      display: grid; grid-template-columns: minmax(180px, 3fr) 7fr; gap: 2rem;
-      padding: 2rem 0; border-top: 1px solid var(--line); align-items: baseline;
+    .step { counter-increment: step; }
+    .step::before {
+      content: counter(step, decimal-leading-zero);
+      display: block; font-family: 'Cabinet Grotesk', sans-serif; font-weight: 800;
+      font-size: 2.6rem; color: var(--pine); letter-spacing: -0.02em; line-height: 1;
+      margin-bottom: 1rem;
     }
-    .step:last-child { border-bottom: 1px solid var(--line); }
     .step h3 {
-      font-family: 'Cabinet Grotesk', sans-serif; font-weight: 800; font-size: 1.3rem;
-      letter-spacing: -0.01em;
+      font-family: 'Cabinet Grotesk', sans-serif; font-weight: 800; font-size: 1.4rem;
+      letter-spacing: -0.01em; margin-bottom: 0.6rem;
     }
-    .step p { color: var(--moss); line-height: 1.6; max-width: 60ch; }
+    .step p { color: var(--moss); line-height: 1.6; }
 
     /* ---------- FAQ ---------- */
     .faq-list { max-width: 880px; margin: 0 auto; padding: 0 24px; }
@@ -410,17 +440,19 @@
     /* ---------- MOBILE ---------- */
     @media (max-width: 920px) {
       .nav-links { display: none; }
-      #heroStage { height: 280vh; }
+      #heroStage { height: 560vh; }
       .hero-copy { max-width: 100%; }
       .hero-overlay { align-items: flex-start; padding-top: 88px; }
-      .hero-stageword { display: none; }
+      .chapter { top: 72%; }
+      .statement { padding: 5rem 24px; }
       .trust-grid { grid-template-columns: 1fr; }
       .trust-cell + .trust-cell { border-left: none; border-top: 1px solid var(--line); }
-      .price-grid { grid-template-columns: 1fr; }
-      .step { grid-template-columns: 1fr; gap: 0.5rem; }
+      .price-grid { grid-template-columns: 1fr; gap: 1.4rem; }
+      .steps { grid-template-columns: 1fr; gap: 2.5rem; }
       .contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
       .cform .frow { grid-template-columns: 1fr; }
-      section { padding: 4.5rem 0; }
+      section { padding: 5rem 0; }
+      .sec-head { margin-bottom: 2.8rem; }
     }
   </style>
 </head>
@@ -488,6 +520,14 @@
     </div>
   </div>
 
+  <!-- STATEMENT BAND -->
+  <section class="statement">
+    <div class="inner reveal">
+      <p class="eyebrow">Bermagui Budget Storage</p>
+      <h2>Lock it. Leave it. <span class="dim">Your gear stays exactly where you left it, ready when you are.</span></h2>
+    </div>
+  </section>
+
   <!-- TRUST STRIP -->
   <div class="trust">
     <div class="trust-grid">
@@ -500,11 +540,13 @@
   <!-- PRICING -->
   <section id="pricing">
     <div class="sec-head reveal">
+      <span class="eyebrow">Sizes &amp; prices</span>
       <h2>Two sizes. Flat monthly rates.</h2>
       <p>Every unit is a weatherproof steel shipping container with your own padlock. Pay fortnightly or monthly, always in advance.</p>
     </div>
     <div class="price-grid">
       <div class="price-card featured reveal">
+        <div class="price-tag">Best value</div>
         <div class="price-photo"><img src="static/container5.jpg" alt="Inside a full 20ft storage container" loading="lazy" /></div>
         <div class="price-body">
           <div class="price-name">Full 20ft container</div>
@@ -529,7 +571,8 @@
   <!-- FACILITY -->
   <section id="facility">
     <div class="sec-head reveal">
-      <h2>A simple, solid setup</h2>
+      <span class="eyebrow">The facility</span>
+      <h2>A simple, solid setup.</h2>
       <p>Clean containers on a fenced and gated yard in the Bermagui Industrial Estate. Plenty of room to back a trailer right up to your door.</p>
     </div>
     <div class="gallery reveal">
@@ -555,7 +598,8 @@
   <!-- HOW IT WORKS -->
   <section id="how">
     <div class="sec-head reveal">
-      <h2>Moving in is easy</h2>
+      <span class="eyebrow">Getting started</span>
+      <h2>Moving in is easy.</h2>
     </div>
     <div class="steps">
       <div class="step reveal">
@@ -576,7 +620,8 @@
   <!-- FAQ -->
   <section id="faq">
     <div class="sec-head reveal">
-      <h2>Common questions</h2>
+      <span class="eyebrow">FAQ</span>
+      <h2>Common questions.</h2>
     </div>
     <div class="faq-list reveal">
       <details>
@@ -605,7 +650,8 @@
   <!-- CONTACT -->
   <section id="contact">
     <div class="sec-head reveal">
-      <h2>Get in touch</h2>
+      <span class="eyebrow">Contact</span>
+      <h2>Get in touch.</h2>
       <p>Tell us what you need to store and when you'd like to start. We usually reply the same day.</p>
     </div>
     <div class="contact-grid">
