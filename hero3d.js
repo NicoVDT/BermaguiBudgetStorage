@@ -20,7 +20,10 @@
   var cue = document.getElementById("scrollCue");
   var stageWord = document.getElementById("heroStageWord");
 
-  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Owner's choice: always play the full animation, on every device, regardless
+  // of the OS "reduce motion" setting. (Restore the matchMedia check here to
+  // make the site respect that accessibility preference again.)
+  var reduced = false;
 
   function webglOK() {
     try {
@@ -35,7 +38,6 @@
     docEl.classList.add("no3d");
     return;
   }
-  if (reduced) docEl.classList.add("static3d");
 
   var T = window.THREE;
   var hasGSAP = !!(window.gsap && window.ScrollTrigger);
