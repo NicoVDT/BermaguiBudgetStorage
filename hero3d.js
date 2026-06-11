@@ -41,7 +41,8 @@
   renderer.toneMappingExposure = 1.22;
 
   var scene = new T.Scene();
-  var camera = new T.PerspectiveCamera(38, 1, 0.1, 200);
+  // Tight near/far range = far better depth precision (kills edge z-fighting).
+  var camera = new T.PerspectiveCamera(38, 1, 0.4, 90);
 
   // ----- environment map for realistic reflections (procedural, no assets) -----
   (function buildEnvironment() {
@@ -169,8 +170,10 @@
       bumpMap: bump, bumpScale: 0.05, envMapIntensity: 0.7
     });
   }
-  var steelDark = new T.MeshStandardMaterial({ color: 0x6f5829, roughness: 0.45, metalness: 0.75, envMapIntensity: 1.0 });
-  var castMat = new T.MeshStandardMaterial({ color: 0x2b2b28, roughness: 0.42, metalness: 0.85, envMapIntensity: 1.0 });
+  // polygonOffset pulls these trims slightly toward the camera in the depth
+  // buffer so they always win over the coplanar wall faces (no shimmer).
+  var steelDark = new T.MeshStandardMaterial({ color: 0x6f5829, roughness: 0.45, metalness: 0.75, envMapIntensity: 1.0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  var castMat = new T.MeshStandardMaterial({ color: 0x2b2b28, roughness: 0.42, metalness: 0.85, envMapIntensity: 1.0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   var rodMat = new T.MeshStandardMaterial({ color: 0x9a948a, roughness: 0.32, metalness: 1.0, envMapIntensity: 0.9 });
   var gasketMat = new T.MeshStandardMaterial({ color: 0x14130f, roughness: 0.95, metalness: 0.0 });
   var floorMat = new T.MeshStandardMaterial({ color: 0x241f19, roughness: 0.8, metalness: 0.3 });
@@ -200,18 +203,21 @@
   floor.position.set(0, -H / 2 + 0.09, 0);
   root.add(floor); register(floor, [0, -9, 0], [0, 0, 0]);
 
-  var inner = new T.Mesh(new T.BoxGeometry(L - 0.14, H - 0.2, W - 0.14), interiorMat);
+  var inner = new T.Mesh(new T.BoxGeometry(L - 0.2, H - 0.24, W - 0.2), interiorMat);
   root.add(inner); register(inner, [0, -9, 0], [0, 0, 0]);
 
-  var backWall = box(wall, H - 0.2, W, tanMat(12));
+  // Walls run slightly TALLER than the gap so they overlap into the roof/floor
+  // slabs instead of meeting them on the same plane (no coplanar z-fight).
+  var wallH = H - 0.12;
+  var backWall = box(wall, wallH, W, tanMat(12));
   backWall.position.set(-L / 2 + wall / 2, 0, 0);
   root.add(backWall); register(backWall, [-11, 1, -5], [0, 0.6, 0]);
 
-  var leftWall = box(L - 0.1, H - 0.2, wall, tanMat(44));
+  var leftWall = box(L - 0.1, wallH, wall, tanMat(44));
   leftWall.position.set(0, 0, -W / 2 + wall / 2);
   root.add(leftWall); register(leftWall, [-4, 3, -12], [0.4, 0, 0]);
 
-  var rightWall = box(L - 0.1, H - 0.2, wall, tanMat(44));
+  var rightWall = box(L - 0.1, wallH, wall, tanMat(44));
   rightWall.position.set(0, 0, W / 2 - wall / 2);
   root.add(rightWall); register(rightWall, [3, 2, 12], [-0.4, 0, 0]);
 
@@ -223,10 +229,12 @@
     var m = box(sx, sy, sz, steelDark); m.position.set(x, y, z);
     root.add(m); register(m, from, [0, 0, 0]); return m;
   }
+  // Edge rails sit a touch proud of the panels so they read as real trims and
+  // never share a plane with the walls.
   var rt = 0.1;
   [-1, 1].forEach(function (iy) {
-    rail(L, rt, rt, 0, iy * (H / 2 - 0.05), -W / 2 + 0.05, [0, iy * 9, -9]);
-    rail(L, rt, rt, 0, iy * (H / 2 - 0.05), W / 2 - 0.05, [0, iy * 9, 9]);
+    rail(L, rt, rt, 0, iy * (H / 2 - 0.02), -W / 2 + 0.02, [0, iy * 9, -9]);
+    rail(L, rt, rt, 0, iy * (H / 2 - 0.02), W / 2 - 0.02, [0, iy * 9, 9]);
   });
 
   [-1, 1].forEach(function (ix) {
