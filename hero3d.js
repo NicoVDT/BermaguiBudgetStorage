@@ -166,15 +166,18 @@
     // Painted steel = dielectric: keep metalness low so the tan stays bright,
     // let the env map add only a soft sheen on the corrugation ridges.
     return new T.MeshStandardMaterial({
-      color: TAN, map: paint, roughnessMap: rough, roughness: 0.58, metalness: 0.18,
-      bumpMap: bump, bumpScale: 0.05, envMapIntensity: 0.7
+      color: TAN, map: paint, roughnessMap: rough, roughness: 0.62, metalness: 0.16,
+      bumpMap: bump, bumpScale: 0.03, envMapIntensity: 0.55
     });
   }
   // polygonOffset pulls these trims slightly toward the camera in the depth
   // buffer so they always win over the coplanar wall faces (no shimmer).
-  var steelDark = new T.MeshStandardMaterial({ color: 0x6f5829, roughness: 0.45, metalness: 0.75, envMapIntensity: 1.0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-  var castMat = new T.MeshStandardMaterial({ color: 0x2b2b28, roughness: 0.42, metalness: 0.85, envMapIntensity: 1.0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-  var rodMat = new T.MeshStandardMaterial({ color: 0x9a948a, roughness: 0.32, metalness: 1.0, envMapIntensity: 0.9 });
+  // Roughness kept fairly high + envMapIntensity modest: sharp little metal
+  // parts at grazing angles are the #1 source of specular "sparkle" flicker as
+  // the camera orbits, so we deliberately keep them satin rather than mirror.
+  var steelDark = new T.MeshStandardMaterial({ color: 0x6f5829, roughness: 0.58, metalness: 0.55, envMapIntensity: 0.6, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  var castMat = new T.MeshStandardMaterial({ color: 0x2b2b28, roughness: 0.55, metalness: 0.55, envMapIntensity: 0.6, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  var rodMat = new T.MeshStandardMaterial({ color: 0x9a948a, roughness: 0.46, metalness: 0.7, envMapIntensity: 0.55 });
   var gasketMat = new T.MeshStandardMaterial({ color: 0x14130f, roughness: 0.95, metalness: 0.0 });
   var floorMat = new T.MeshStandardMaterial({ color: 0x241f19, roughness: 0.8, metalness: 0.3 });
   var interiorMat = new T.MeshStandardMaterial({ color: 0xb8a06a, roughness: 0.85, metalness: 0.1, side: T.BackSide });
