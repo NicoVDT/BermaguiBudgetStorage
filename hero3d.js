@@ -188,7 +188,7 @@
   var castMat = new T.MeshStandardMaterial({ color: 0x2b2b28, roughness: 0.55, metalness: 0.55, envMapIntensity: 0.6, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   var rodMat = new T.MeshStandardMaterial({ color: 0x9a948a, roughness: 0.46, metalness: 0.7, envMapIntensity: 0.55 });
   var gasketMat = new T.MeshStandardMaterial({ color: 0x14130f, roughness: 0.95, metalness: 0.0 });
-  var floorMat = new T.MeshStandardMaterial({ color: 0x241f19, roughness: 0.8, metalness: 0.3 });
+  var floorMat = new T.MeshStandardMaterial({ color: 0x241f19, roughness: 0.8, metalness: 0.3, polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2 });
   var interiorMat = new T.MeshStandardMaterial({ color: 0xb8a06a, roughness: 0.85, metalness: 0.1, side: T.BackSide });
 
   // ----- dimensions (20ft ISO, metres) -----
@@ -211,7 +211,10 @@
     m.castShadow = true; m.receiveShadow = true; return m;
   }
 
-  var floor = box(L, 0.18, W, floorMat);
+  // Floor/roof slabs are recessed 3cm inside the wall planes: their dark side
+  // faces previously sat EXACTLY on the same plane as the tan walls where they
+  // overlap, which z-fought as a stippled band along the bottom/top edges.
+  var floor = box(L - 0.06, 0.18, W - 0.06, floorMat);
   floor.position.set(0, -H / 2 + 0.09, 0);
   root.add(floor); register(floor, [0, -9, 0], [0, 0, 0]);
 
@@ -221,7 +224,8 @@
   // Walls run slightly TALLER than the gap so they overlap into the roof/floor
   // slabs instead of meeting them on the same plane (no coplanar z-fight).
   var wallH = H - 0.12;
-  var backWall = box(wall, wallH, W, tanMat(9));
+  // Narrower than W so its edges tuck inside the side walls (never coplanar).
+  var backWall = box(wall, wallH, W - 0.1, tanMat(9));
   backWall.position.set(-L / 2 + wall / 2, 0, 0);
   root.add(backWall); register(backWall, [-11, 1, -5], [0, 0.6, 0]);
 
@@ -233,7 +237,7 @@
   rightWall.position.set(0, 0, W / 2 - wall / 2);
   root.add(rightWall); register(rightWall, [3, 2, 12], [-0.4, 0, 0]);
 
-  var roof = box(L, 0.1, W, tanMat(22));
+  var roof = box(L - 0.06, 0.1, W - 0.06, tanMat(22));
   roof.position.set(0, H / 2 - 0.05, 0);
   root.add(roof); register(roof, [0, 11, 0], [0, 0, 0.34]);
 
