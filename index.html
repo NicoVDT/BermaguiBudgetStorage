@@ -119,18 +119,49 @@
     .nav-phone:hover { background: var(--pine-soft); transform: translateY(-1px); }
     .nav-phone:active { transform: scale(0.98); }
 
-    /* ---------- HERO 3D STAGE ---------- */
-    /* Tall stage; the sticky child stays pinned while we scrub the 3D scene. */
-    #heroStage { position: relative; height: 320vh; background: var(--ink); }
+    /* ---------- HERO 3D STAGE (cinematic) ---------- */
+    /* Tall stage; the sticky child stays pinned while we scrub the camera. */
+    #heroStage { position: relative; height: 600vh; background: #0c0c0b; }
     #heroSticky {
       position: sticky; top: 0; height: 100vh; width: 100%;
       overflow: hidden; background:
-        radial-gradient(120% 80% at 70% 30%, #24241f 0%, #161615 55%, #0f0f0e 100%);
+        radial-gradient(130% 90% at 60% 35%, #1c1c19 0%, #121211 55%, #090908 100%);
     }
     #heroCanvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; }
     #heroFallback {
       position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
       display: none;
+    }
+    /* Cinematic vignette over the canvas for depth. */
+    .hero-vignette {
+      position: absolute; inset: 0; z-index: 1; pointer-events: none;
+      background: radial-gradient(120% 100% at 50% 42%, transparent 55%, rgba(0,0,0,0.55) 100%);
+    }
+    /* Apple-style chapter captions, centred, crossfading on scroll. */
+    .chapters { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+    .chapter {
+      position: absolute; left: 50%; top: 76%; transform: translate(-50%, -50%);
+      width: min(720px, 88vw); text-align: center; opacity: 0; will-change: opacity, transform;
+    }
+    /* soft dark scrim so white captions stay legible over the bright container */
+    .chapter::before {
+      content: ''; position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%, -50%); width: 140%; height: 240%; z-index: -1;
+      background: radial-gradient(60% 60% at 50% 50%, rgba(8,8,7,0.72) 0%, rgba(8,8,7,0) 72%);
+    }
+    .ch-eyebrow {
+      display: inline-block; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--pine-soft); margin-bottom: 0.9rem;
+    }
+    .chapter h2 {
+      font-family: 'Cabinet Grotesk', sans-serif; font-weight: 800;
+      font-size: clamp(2.2rem, 5.2vw, 4.4rem); line-height: 1.0; letter-spacing: -0.025em;
+      color: #fff; margin-bottom: 0.9rem; text-shadow: 0 2px 30px rgba(0,0,0,0.55);
+    }
+    .chapter p {
+      font-size: clamp(1rem, 1.5vw, 1.3rem); line-height: 1.55;
+      color: rgba(255,255,255,0.82); max-width: 32ch; margin: 0 auto;
+      text-shadow: 0 1px 18px rgba(0,0,0,0.5);
     }
     .hero-overlay {
       position: absolute; inset: 0; z-index: 2; pointer-events: none;
@@ -408,24 +439,51 @@
     </div>
   </header>
 
-  <!-- HERO 3D STAGE: sticky canvas that assembles a container, then reacts to scroll -->
+  <!-- HERO 3D STAGE: cinematic, Apple-style. Container stays centred while the
+       camera orbits it through chapters and captions crossfade in. -->
   <div id="heroStage">
     <div id="heroSticky">
       <canvas id="heroCanvas"></canvas>
-      <!-- Static fallback for reduced-motion / no-WebGL -->
+      <!-- Static fallback for no-WebGL -->
       <img id="heroFallback" src="static/container7.jpg" alt="Storage containers at Bermagui Budget Storage" />
+      <div class="hero-vignette" aria-hidden="true"></div>
+
       <div class="hero-overlay">
         <div class="hero-copy" id="heroCopy">
-          <h1>Secure container storage in <b>Bermagui</b></h1>
-          <p class="hero-sub">Drive-up shipping containers in a gated compound at 5-7 Sherwood Road. From $150 a month with 24/7 access.</p>
+          <h1>Storage,<br>engineered to last.</h1>
+          <p class="hero-sub">Drive-up shipping containers in a gated compound at 5-7 Sherwood Road, Bermagui. From $150 a month.</p>
           <div class="hero-actions">
             <a class="btn btn-solid" href="#pricing">See sizes &amp; prices</a>
             <a class="btn btn-line-light" href="#contact">Send an enquiry</a>
           </div>
-          <p class="hero-hint" id="heroHint">Drag to spin &middot; tap the doors to open</p>
+          <p class="hero-hint" id="heroHint">Scroll to explore &middot; drag to spin</p>
         </div>
-        <div class="hero-stageword" id="heroStageWord" aria-hidden="true"></div>
       </div>
+
+      <!-- Chapter captions: faded in/out by scroll progress (data-start / data-end). -->
+      <div class="chapters" id="chapters" aria-hidden="true">
+        <div class="chapter" data-start="0.15" data-end="0.31">
+          <span class="ch-eyebrow">Marine-grade steel</span>
+          <h2>Built to take a beating.</h2>
+          <p>Wind, rain and salt air off the coast. Your gear stays dry and secure.</p>
+        </div>
+        <div class="chapter" data-start="0.34" data-end="0.50">
+          <span class="ch-eyebrow">Two sizes</span>
+          <h2>Room to breathe.</h2>
+          <p>A full 20ft swallows a 2-3 bedroom home. The half fits a one-bedder, or a car and boxes.</p>
+        </div>
+        <div class="chapter" data-start="0.53" data-end="0.69">
+          <span class="ch-eyebrow">24/7 access</span>
+          <h2>Drive up. Load in.</h2>
+          <p>Your own padlock, your own key. Come and go any hour, any day of the year.</p>
+        </div>
+        <div class="chapter" data-start="0.72" data-end="0.88">
+          <span class="ch-eyebrow">Gated &amp; watched</span>
+          <h2>Secure by design.</h2>
+          <p>A keypad compound with CCTV on site. Family run in Bermagui since 2022.</p>
+        </div>
+      </div>
+
       <div class="scroll-cue" id="scrollCue" aria-hidden="true"></div>
     </div>
   </div>
@@ -630,7 +688,7 @@
   <script src="vendor/three.min.js?v=2"></script>
   <script src="vendor/gsap.min.js?v=2"></script>
   <script src="vendor/ScrollTrigger.min.js?v=2"></script>
-  <script src="hero3d.js?v=4" defer></script>
+  <script src="hero3d.js?v=5" defer></script>
   <script src="chat-widget.js?v=2" defer></script>
 </body>
 </html>
