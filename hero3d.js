@@ -59,8 +59,8 @@
   // ----- lighting -----
   // The HDRI environment does most of the work now; directional lights only
   // add the sun key (shadows) and a soft camera-side fill.
-  scene.add(new T.HemisphereLight(0xf2ead9, 0x2a2722, 0.35));
-  var key = new T.DirectionalLight(0xffe7c4, 1.9);
+  scene.add(new T.HemisphereLight(0xf2ead9, 0x2a2722, 0.55));
+  var key = new T.DirectionalLight(0xffe7c4, 2.1);
   key.position.set(-8, 12, 7);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
@@ -71,10 +71,15 @@
   var rim = new T.DirectionalLight(0xffcf9a, 0.7);
   rim.position.set(10, 5, -8);
   scene.add(rim);
-  // front fill from the camera side so the face we see stays bright tan
-  var fill = new T.DirectionalLight(0xfff6ea, 0.8);
+  // front fill from the camera side so the face we see stays bright tan.
+  // The doors chapter looks at the +x end, away from the sun key, so a second
+  // fill from +x keeps that face readable when the doors swing open.
+  var fill = new T.DirectionalLight(0xfff6ea, 1.0);
   fill.position.set(8, 5, 11);
   scene.add(fill);
+  var doorFill = new T.DirectionalLight(0xffeede, 0.7);
+  doorFill.position.set(14, 3, 2);
+  scene.add(doorFill);
 
   // ----- photoscanned PBR textures (Poly Haven "Container Side", CC0) -----
   // diff = real paint with scratches/wear (recoloured green -> fleet tan),
@@ -107,8 +112,8 @@
   // is never a grey flash.
   function tanMat(rx, ry) {
     var m = new T.MeshStandardMaterial({
-      color: TAN, roughness: 0.55, metalness: 0.2, envMapIntensity: 0.9,
-      normalScale: new T.Vector2(0.9, 0.9)
+      color: TAN, roughness: 0.55, metalness: 0.2, envMapIntensity: 1.1,
+      normalScale: new T.Vector2(1.1, 1.1)
     });
     pbrMats.push({ mat: m, rx: rx, ry: ry || 1.2 });
     return m;
@@ -124,7 +129,7 @@
     var sum = 0, i, n = d.length / 4;
     for (i = 0; i < d.length; i += 4) sum += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
     var avg = sum / n;                       // scan's mean luminance
-    var tr = 194, tg = 165, tb = 103;        // 0xc2a567
+    var tr = 172, tg = 144, tb = 86;         // richer tan; tone mapping lifts it
     for (i = 0; i < d.length; i += 4) {
       var l = (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / avg;
       d[i]     = Math.min(255, tr * l);
@@ -143,13 +148,15 @@
     applyMaps(t, "aoMap");
     applyMaps(t, "roughnessMap");
     applyMaps(t, "metalnessMap");
-    pbrMats.forEach(function (e) { e.mat.roughness = 1; e.mat.metalness = 1; });  // maps take over
+    // maps take over; roughness 0.85 scales the scan down a touch so the
+    // paint keeps a satin sheen instead of going full matte clay
+    pbrMats.forEach(function (e) { e.mat.roughness = 0.85; e.mat.metalness = 1; });
   });
   // polygonOffset pulls these trims slightly toward the camera in the depth
   // buffer so they always win over the coplanar wall faces (no shimmer).
   // Real boxes have the frame painted the same colour as the panels, just a
   // touch darker from shadowing and thicker paint; satin so it never sparkles.
-  var steelDark = new T.MeshStandardMaterial({ color: 0x9a8350, roughness: 0.52, metalness: 0.25, envMapIntensity: 0.8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  var steelDark = new T.MeshStandardMaterial({ color: 0x84703e, roughness: 0.52, metalness: 0.25, envMapIntensity: 0.8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   var castMat = new T.MeshStandardMaterial({ color: 0x35322c, roughness: 0.6, metalness: 0.45, envMapIntensity: 0.7, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   var rodMat = new T.MeshStandardMaterial({ color: 0xb8b4ac, roughness: 0.38, metalness: 0.85, envMapIntensity: 0.8 });
   var gasketMat = new T.MeshStandardMaterial({ color: 0x14130f, roughness: 0.95, metalness: 0.0 });
