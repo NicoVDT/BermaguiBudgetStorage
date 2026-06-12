@@ -44,43 +44,23 @@
   // Tight near/far range = far better depth precision (kills edge z-fighting).
   var camera = new T.PerspectiveCamera(38, 1, 0.4, 90);
 
-  // ----- environment map for realistic reflections (procedural, no assets) -----
-  (function buildEnvironment() {
-    var envScene = new T.Scene();
-    // gradient sky dome
-    var skyCanvas = document.createElement("canvas");
-    skyCanvas.width = 16; skyCanvas.height = 256;
-    var sg = skyCanvas.getContext("2d");
-    var grd = sg.createLinearGradient(0, 0, 0, 256);
-    grd.addColorStop(0.0, "#cfd6dc");   // sky
-    grd.addColorStop(0.45, "#a7adb1");
-    grd.addColorStop(0.55, "#6f6a60");   // horizon
-    grd.addColorStop(1.0, "#2b2924");   // ground
-    sg.fillStyle = grd; sg.fillRect(0, 0, 16, 256);
-    var skyTex = new T.CanvasTexture(skyCanvas);
-    skyTex.mapping = T.EquirectangularReflectionMapping;
-    var dome = new T.Mesh(
-      new T.SphereGeometry(50, 24, 16),
-      new T.MeshBasicMaterial({ map: skyTex, side: T.BackSide })
-    );
-    envScene.add(dome);
-    // bright soft panels act as studio lights in the reflection
-    function panel(x, y, z, s, c) {
-      var m = new T.Mesh(new T.PlaneGeometry(s, s), new T.MeshBasicMaterial({ color: c }));
-      m.position.set(x, y, z); m.lookAt(0, 0, 0); envScene.add(m);
-    }
-    panel(-12, 14, 6, 16, 0xffffff);
-    panel(14, 8, -8, 12, 0xfff0d8);
-    panel(0, -6, 14, 14, 0x8893a0);
-
-    var pmrem = new T.PMREMGenerator(renderer);
-    pmrem.compileEquirectangularShader();
-    scene.environment = pmrem.fromScene(envScene, 0.04).texture;
-  })();
+  // ----- environment: real photographed sunset sky (Poly Haven CC0) -----
+  // A real equirect photo is what makes the paint and steel read as physical:
+  // every reflection and sheen comes from an actual sky.
+  var pmrem = new T.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+  new T.TextureLoader().load("static/3d/env.jpg", function (tex) {
+    tex.mapping = T.EquirectangularReflectionMapping;
+    if (T.SRGBColorSpace) tex.colorSpace = T.SRGBColorSpace;
+    scene.environment = pmrem.fromEquirectangular(tex).texture;
+    tex.dispose();
+  });
 
   // ----- lighting -----
-  scene.add(new T.HemisphereLight(0xeef2f6, 0x2a2722, 0.5));
-  var key = new T.DirectionalLight(0xfff4e2, 2.4);
+  // The HDRI environment does most of the work now; directional lights only
+  // add the sun key (shadows) and a soft camera-side fill.
+  scene.add(new T.HemisphereLight(0xf2ead9, 0x2a2722, 0.35));
+  var key = new T.DirectionalLight(0xffe7c4, 1.9);
   key.position.set(-8, 12, 7);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
@@ -88,105 +68,90 @@
   scam.left = -8; scam.right = 8; scam.top = 8; scam.bottom = -8; scam.near = 1; scam.far = 44;
   key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
   scene.add(key);
-  var rim = new T.DirectionalLight(0xffd9a0, 1.0);
+  var rim = new T.DirectionalLight(0xffcf9a, 0.7);
   rim.position.set(10, 5, -8);
   scene.add(rim);
   // front fill from the camera side so the face we see stays bright tan
-  var fill = new T.DirectionalLight(0xfff6ea, 1.0);
+  var fill = new T.DirectionalLight(0xfff6ea, 0.8);
   fill.position.set(8, 5, 11);
   scene.add(fill);
 
-  // ----- procedural textures -----
+  // ----- photoscanned PBR textures (Poly Haven "Container Side", CC0) -----
+  // diff = real paint with scratches/wear (recoloured green -> fleet tan),
+  // nor  = the actual corrugation profile, dents and weld seams,
+  // arm  = AO / roughness / metalness scanned from the same panel.
   function cv(w, h) { var c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
 
-  // Weathered tan paint: base tone + mottled sun-fade + rust streaks low down.
-  function paintTexture() {
-    var c = cv(512, 512), g = c.getContext("2d");
-    g.fillStyle = "#c2a567"; g.fillRect(0, 0, 512, 512);
-    var i, x, y, v;
-    for (i = 0; i < 5000; i++) {
-      x = Math.random() * 512; y = Math.random() * 512; v = (Math.random() - 0.5) * 26;
-      g.fillStyle = "rgba(" + (194 + v) + "," + (165 + v) + "," + (103 + v) + ",0.4)";
-      g.fillRect(x, y, 3, 3);
-    }
-    // light rust streaks low down (the fleet is clean, so keep it subtle)
-    for (i = 0; i < 14; i++) {
-      x = Math.random() * 512; y = 380 + Math.random() * 120;
-      var len = 16 + Math.random() * 60;
-      var grd = g.createLinearGradient(x, y, x, y + len);
-      grd.addColorStop(0, "rgba(120,70,34,0)");
-      grd.addColorStop(0.4, "rgba(120,68,30,0.14)");
-      grd.addColorStop(1, "rgba(90,50,24,0)");
-      g.fillStyle = grd; g.fillRect(x, y, 1.2 + Math.random() * 1.5, len);
-    }
-    // scuffs
-    g.strokeStyle = "rgba(60,46,26,0.14)"; g.lineWidth = 2;
-    for (i = 0; i < 18; i++) {
-      g.beginPath(); x = Math.random() * 512; y = Math.random() * 512;
-      g.moveTo(x, y); g.lineTo(x + (Math.random() - 0.5) * 60, y + (Math.random() - 0.5) * 20); g.stroke();
-    }
-    var t = new T.CanvasTexture(c);
-    if (T.SRGBColorSpace) t.colorSpace = T.SRGBColorSpace;
-    t.wrapS = t.wrapT = T.RepeatWrapping;
-    t.anisotropy = renderer.capabilities.getMaxAnisotropy();
-    return t;
-  }
-  // Roughness map: rust patches are rougher; paint mid; gives varied sheen.
-  function roughnessTexture() {
-    var c = cv(256, 256), g = c.getContext("2d");
-    g.fillStyle = "#9a9a9a"; g.fillRect(0, 0, 256, 256);
-    for (var i = 0; i < 400; i++) {
-      var x = Math.random() * 256, y = 120 + Math.random() * 136;
-      g.fillStyle = "rgba(220,220,220," + (0.1 + Math.random() * 0.3) + ")";
-      g.beginPath(); g.arc(x, y, 2 + Math.random() * 6, 0, 6.28); g.fill();
-    }
-    var t = new T.CanvasTexture(c);
-    t.wrapS = t.wrapT = T.RepeatWrapping;
-    t.anisotropy = renderer.capabilities.getMaxAnisotropy();
-    return t;
-  }
-  // Corrugation bump (vertical bands). A taller canvas + anisotropic filtering
-  // are essential: at grazing angles near the floor the fine vertical stripes
-  // otherwise alias into a shimmering moiré band (the "flickering" at the
-  // bottom edge). Anisotropy + mipmaps resolve those stripes cleanly.
-  function corrugation(reps) {
-    var c = cv(512, 64), g = c.getContext("2d");
-    for (var i = 0; i < reps; i++) {
-      var w = 512 / reps, x0 = w * i, grd = g.createLinearGradient(x0, 0, x0 + w, 0);
-      grd.addColorStop(0.0, "#2a2a2a"); grd.addColorStop(0.3, "#ffffff");
-      grd.addColorStop(0.5, "#f4f4f4"); grd.addColorStop(0.7, "#ffffff");
-      grd.addColorStop(1.0, "#161616");
-      g.fillStyle = grd; g.fillRect(x0, 0, w, 64);
-    }
-    var t = new T.CanvasTexture(c);
-    t.wrapS = t.wrapT = T.RepeatWrapping;
-    t.anisotropy = renderer.capabilities.getMaxAnisotropy();
-    t.generateMipmaps = true;
-    t.minFilter = T.LinearMipmapLinearFilter;
-    return t;
-  }
-
   var TAN = 0xc2a567;   // clean warm tan, matches the real fleet
-  var paint = paintTexture();
-  var rough = roughnessTexture();
+  var texLoader = new T.TextureLoader();
+  var maxAniso = renderer.capabilities.getMaxAnisotropy();
 
-  function tanMat(reps) {
-    var bump = corrugation(reps);
-    // Painted steel = dielectric: keep metalness low so the tan stays bright,
-    // let the env map add only a soft sheen on the corrugation ridges.
-    return new T.MeshStandardMaterial({
-      color: TAN, map: paint, roughnessMap: rough, roughness: 0.62, metalness: 0.16,
-      bumpMap: bump, bumpScale: 0.03, envMapIntensity: 0.55
+  // Every surface gets its own clone (different repeat), sharing the image.
+  var pbrMats = [];   // { mat, rx, ry }
+  function applyMaps(base, key) {
+    pbrMats.forEach(function (e) {
+      var t = base.clone();
+      t.wrapS = t.wrapT = T.RepeatWrapping;
+      t.anisotropy = maxAniso;
+      t.repeat.set(e.rx, e.ry);
+      t.needsUpdate = true;
+      e.mat[key] = t;
+      if (key === "map") e.mat.color.set(0xffffff);   // tint now baked in
+      e.mat.needsUpdate = true;
     });
   }
+
+  // The scan covers ~2m of panel (7 corrugation periods per tile).
+  // rx is chosen per surface so the corrugation pitch stays ~0.29m, true to a
+  // real 20ft box. Until the maps arrive the material is plain tan, so there
+  // is never a grey flash.
+  function tanMat(rx, ry) {
+    var m = new T.MeshStandardMaterial({
+      color: TAN, roughness: 0.55, metalness: 0.2, envMapIntensity: 0.9,
+      normalScale: new T.Vector2(0.9, 0.9)
+    });
+    pbrMats.push({ mat: m, rx: rx, ry: ry || 1.2 });
+    return m;
+  }
+
+  texLoader.load("static/3d/container_diff.jpg", function (t) {
+    // Recolour the green scan to the fleet tan: keep per-pixel luminance
+    // (scratches, grime, fade) and re-tint the chroma.
+    var img = t.image;
+    var c = cv(img.width, img.height), g = c.getContext("2d");
+    g.drawImage(img, 0, 0);
+    var id = g.getImageData(0, 0, c.width, c.height), d = id.data;
+    var sum = 0, i, n = d.length / 4;
+    for (i = 0; i < d.length; i += 4) sum += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+    var avg = sum / n;                       // scan's mean luminance
+    var tr = 194, tg = 165, tb = 103;        // 0xc2a567
+    for (i = 0; i < d.length; i += 4) {
+      var l = (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / avg;
+      d[i]     = Math.min(255, tr * l);
+      d[i + 1] = Math.min(255, tg * l);
+      d[i + 2] = Math.min(255, tb * l);
+    }
+    g.putImageData(id, 0, 0);
+    var tex = new T.CanvasTexture(c);
+    if (T.SRGBColorSpace) tex.colorSpace = T.SRGBColorSpace;
+    tex.generateMipmaps = true;
+    tex.minFilter = T.LinearMipmapLinearFilter;
+    applyMaps(tex, "map");
+  });
+  texLoader.load("static/3d/container_nor.jpg", function (t) { applyMaps(t, "normalMap"); });
+  texLoader.load("static/3d/container_arm.jpg", function (t) {
+    applyMaps(t, "aoMap");
+    applyMaps(t, "roughnessMap");
+    applyMaps(t, "metalnessMap");
+    pbrMats.forEach(function (e) { e.mat.roughness = 1; e.mat.metalness = 1; });  // maps take over
+  });
   // polygonOffset pulls these trims slightly toward the camera in the depth
   // buffer so they always win over the coplanar wall faces (no shimmer).
-  // Roughness kept fairly high + envMapIntensity modest: sharp little metal
-  // parts at grazing angles are the #1 source of specular "sparkle" flicker as
-  // the camera orbits, so we deliberately keep them satin rather than mirror.
-  var steelDark = new T.MeshStandardMaterial({ color: 0x6f5829, roughness: 0.58, metalness: 0.55, envMapIntensity: 0.6, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-  var castMat = new T.MeshStandardMaterial({ color: 0x2b2b28, roughness: 0.55, metalness: 0.55, envMapIntensity: 0.6, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-  var rodMat = new T.MeshStandardMaterial({ color: 0x9a948a, roughness: 0.46, metalness: 0.7, envMapIntensity: 0.55 });
+  // Real boxes have the frame painted the same colour as the panels, just a
+  // touch darker from shadowing and thicker paint; satin so it never sparkles.
+  var steelDark = new T.MeshStandardMaterial({ color: 0x9a8350, roughness: 0.52, metalness: 0.25, envMapIntensity: 0.8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  var castMat = new T.MeshStandardMaterial({ color: 0x35322c, roughness: 0.6, metalness: 0.45, envMapIntensity: 0.7, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  var rodMat = new T.MeshStandardMaterial({ color: 0xb8b4ac, roughness: 0.38, metalness: 0.85, envMapIntensity: 0.8 });
   var gasketMat = new T.MeshStandardMaterial({ color: 0x14130f, roughness: 0.95, metalness: 0.0 });
   var floorMat = new T.MeshStandardMaterial({ color: 0x241f19, roughness: 0.8, metalness: 0.3, polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2 });
   var interiorMat = new T.MeshStandardMaterial({ color: 0xb8a06a, roughness: 0.85, metalness: 0.1, side: T.BackSide });
@@ -225,19 +190,19 @@
   // slabs instead of meeting them on the same plane (no coplanar z-fight).
   var wallH = H - 0.12;
   // Narrower than W so its edges tuck inside the side walls (never coplanar).
-  var backWall = box(wall, wallH, W - 0.1, tanMat(9));
+  var backWall = box(wall, wallH, W - 0.1, tanMat(1.2));
   backWall.position.set(-L / 2 + wall / 2, 0, 0);
   root.add(backWall); register(backWall, [-11, 1, -5], [0, 0.6, 0]);
 
-  var leftWall = box(L - 0.1, wallH, wall, tanMat(22));
+  var leftWall = box(L - 0.1, wallH, wall, tanMat(3));
   leftWall.position.set(0, 0, -W / 2 + wall / 2);
   root.add(leftWall); register(leftWall, [-4, 3, -12], [0.4, 0, 0]);
 
-  var rightWall = box(L - 0.1, wallH, wall, tanMat(22));
+  var rightWall = box(L - 0.1, wallH, wall, tanMat(3));
   rightWall.position.set(0, 0, W / 2 - wall / 2);
   root.add(rightWall); register(rightWall, [3, 2, 12], [-0.4, 0, 0]);
 
-  var roof = box(L - 0.06, 0.1, W - 0.06, tanMat(22));
+  var roof = box(L - 0.06, 0.1, W - 0.06, tanMat(3));
   roof.position.set(0, H / 2 - 0.05, 0);
   root.add(roof); register(roof, [0, 11, 0], [0, 0, 0.34]);
 
@@ -268,7 +233,7 @@
     var pivot = new T.Group();
     pivot.position.set(L / 2 - 0.03, 0, sign * (W / 2 - 0.05));
     var leaf = new T.Group();
-    var dp = box(0.06, H - 0.2, W / 2 - 0.08, tanMat(4));
+    var dp = box(0.06, H - 0.2, W / 2 - 0.08, tanMat(0.58));
     dp.position.set(0, 0, -sign * (W / 4 - 0.04)); leaf.add(dp);
     var gasket = box(0.02, H - 0.16, W / 2 - 0.02, gasketMat);
     gasket.position.set(-0.04, 0, -sign * (W / 4 - 0.04)); leaf.add(gasket);
