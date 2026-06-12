@@ -519,9 +519,10 @@
     /* ---------- REVIEWS (hidden until real quotes are added) ---------- */
     #reviews { background: var(--bone-2); }
     .review-grid {
-      max-width: 1080px; margin: 0 auto; padding: 0 24px;
+      max-width: 1080px; margin: 1.6rem auto 0; padding: 0 24px;
       display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6rem;
     }
+    .review-grid[hidden] { display: none; }
     .review {
       background: #fbfaf6; border: 1px solid var(--line); border-radius: 10px;
       padding: 1.8rem; font-size: 1rem; line-height: 1.6;
