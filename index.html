@@ -528,6 +528,19 @@
     }
     .review .stars { color: var(--pine); letter-spacing: 0.12em; margin-bottom: 0.7rem; }
     .review footer { margin-top: 1rem; color: var(--moss); font-size: 0.9rem; }
+    .gbadge {
+      max-width: 640px; margin: 0 auto; padding: 1.6rem 2rem;
+      display: flex; align-items: center; gap: 1.4rem; flex-wrap: wrap; justify-content: center;
+      background: #fbfaf6; border: 1px solid var(--line); border-radius: 12px;
+    }
+    .gbadge-score {
+      font-family: 'Cabinet Grotesk', sans-serif; font-weight: 800;
+      font-size: 3.2rem; letter-spacing: -0.02em; line-height: 1;
+    }
+    .gbadge-meta .stars { color: var(--pine); font-size: 1.2rem; letter-spacing: 0.14em; }
+    .gbadge-meta span { display: block; color: var(--moss); font-size: 0.95rem; margin-top: 0.2rem; }
+    .gbadge .btn { margin-left: auto; }
+    @media (max-width: 640px) { .gbadge .btn { margin-left: 0; } }
 
     /* ---------- MICRO-INTERACTIONS ---------- */
     /* one welcoming pulse on the phone button after load */
@@ -736,15 +749,23 @@
     </div>
   </section>
 
-  <!-- REVIEWS: hidden until real customer quotes are added.
-       To go live: replace the three quotes below with real ones (with each
-       customer's permission) and delete the `hidden` attribute. -->
-  <section id="reviews" hidden>
+  <!-- REVIEWS: the Google rating summary is live (verified on the business's
+       Google profile). The quote grid below stays hidden until real review
+       text is added — paste real quotes, then delete its `hidden`. -->
+  <section id="reviews">
     <div class="sec-head reveal">
       <span class="eyebrow">What locals say</span>
       <h2>Trusted around Bermagui.</h2>
     </div>
-    <div class="review-grid">
+    <div class="gbadge reveal">
+      <div class="gbadge-score">5.0</div>
+      <div class="gbadge-meta">
+        <div class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <span>26 five-star reviews on Google</span>
+      </div>
+      <a class="btn btn-line" href="https://www.google.com/maps?cid=2451845448032700336" target="_blank" rel="noopener">Read them on Google</a>
+    </div>
+    <div class="review-grid" hidden>
       <blockquote class="review reveal">
         <div class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
         REPLACE WITH REAL QUOTE
