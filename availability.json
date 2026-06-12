@@ -1,0 +1,5 @@
+{
+  "show": false,
+  "free": 0,
+  "_how_to_use": "Set show to true and free to the number of empty containers. free: 0 shows 'Currently full - enquire to join the waitlist'. Edit this file on GitHub and the site updates in ~2 minutes."
+}

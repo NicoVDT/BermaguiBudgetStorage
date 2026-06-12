@@ -468,8 +468,100 @@
     html.no3d .hero-overlay { z-index: 2; }
     html.no3d .scroll-cue, html.no3d .hero-hint, html.no3d .hero-stageword { display: none; }
 
+    /* ---------- AVAILABILITY PILL ---------- */
+    .avail-pill {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      border: 1px solid rgba(245,240,232,0.3); border-radius: 999px;
+      padding: 0.4rem 0.95rem; margin-bottom: 1.3rem;
+      font-size: 0.85rem; color: rgba(245,240,232,0.85);
+      backdrop-filter: blur(6px); background: rgba(12,12,11,0.35);
+    }
+    .avail-pill .dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: #6fbf73; box-shadow: 0 0 8px rgba(111,191,115,0.8);
+      animation: availGlow 2.2s ease-in-out infinite;
+    }
+    .avail-pill.full .dot { background: #e0a33b; box-shadow: 0 0 8px rgba(224,163,59,0.8); }
+    @keyframes availGlow { 50% { opacity: 0.55; } }
+
+    /* ---------- WILL IT FIT ---------- */
+    #fit { background: var(--ink); color: var(--bone); }
+    #fit .sec-head h2 { color: var(--bone); }
+    #fit .sec-head p { color: rgba(245,240,232,0.65); }
+    .fit-wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+    .fit-controls { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; margin-bottom: 1.6rem; }
+    .fit-btn {
+      background: none; border: 1.5px solid rgba(245,240,232,0.3); color: var(--bone);
+      font-family: inherit; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+      padding: 0.65rem 1.2rem; border-radius: 999px;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    }
+    .fit-btn:hover { border-color: var(--pine-soft); transform: translateY(-1px); }
+    .fit-btn.on { background: var(--pine); border-color: var(--pine); }
+    .fit-stage {
+      position: relative; height: 420px; border-radius: 12px; overflow: hidden;
+      background: radial-gradient(120% 100% at 50% 30%, #262522 0%, #161514 70%, #0f0e0d 100%);
+      border: 1px solid rgba(245,240,232,0.12);
+    }
+    .fit-stage canvas { width: 100%; height: 100%; display: block; }
+    .fit-verdict {
+      text-align: center; margin-top: 1.2rem; font-size: 1.05rem;
+      color: rgba(245,240,232,0.85); min-height: 1.8em;
+    }
+    .fit-verdict b {
+      color: var(--pine-soft); margin-right: 0.5rem;
+      font-family: 'Cabinet Grotesk', sans-serif; letter-spacing: 0.02em;
+    }
+    .fit-verdict.flash { animation: verdictIn 0.45s ease; }
+    @keyframes verdictIn { from { opacity: 0; transform: translateY(8px); } }
+    .fit-hint { text-align: center; color: rgba(245,240,232,0.4); font-size: 0.82rem; margin-top: 0.5rem; }
+
+    /* ---------- REVIEWS (hidden until real quotes are added) ---------- */
+    #reviews { background: var(--bone-2); }
+    .review-grid {
+      max-width: 1080px; margin: 0 auto; padding: 0 24px;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6rem;
+    }
+    .review {
+      background: #fbfaf6; border: 1px solid var(--line); border-radius: 10px;
+      padding: 1.8rem; font-size: 1rem; line-height: 1.6;
+    }
+    .review .stars { color: var(--pine); letter-spacing: 0.12em; margin-bottom: 0.7rem; }
+    .review footer { margin-top: 1rem; color: var(--moss); font-size: 0.9rem; }
+
+    /* ---------- MICRO-INTERACTIONS ---------- */
+    /* one welcoming pulse on the phone button after load */
+    .nav-phone { animation: phonePulse 1.4s ease 1.8s 1; }
+    @keyframes phonePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(192,81,10,0); }
+      35% { box-shadow: 0 0 0 9px rgba(192,81,10,0.25); }
+      70% { box-shadow: 0 0 0 16px rgba(192,81,10,0); }
+    }
+    /* springy FAQ marker */
+    .faq-list summary::after { transition: transform 0.45s cubic-bezier(0.34, 1.6, 0.64, 1); }
+    /* price cards tilt toward the cursor (JS sets the vars on fine pointers) */
+    .price-card { transform-style: preserve-3d; }
+    @media (pointer: fine) {
+      .price-card.tilting {
+        transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-6px);
+        transition: box-shadow 0.3s ease;
+      }
+    }
+    /* gallery is draggable */
+    .gallery { cursor: grab; user-select: none; }
+    .gallery.dragging { cursor: grabbing; scroll-snap-type: none; }
+    .gallery img { transition: transform 0.25s ease; transform: skewX(var(--gtilt, 0deg)); pointer-events: none; }
+    /* soft flash when jumping between sections via the nav */
+    .page-flash {
+      position: fixed; inset: 0; z-index: 90; pointer-events: none;
+      background: var(--bone); opacity: 0; transition: opacity 0.28s ease;
+    }
+    .page-flash.go { opacity: 0.35; }
+
     /* ---------- MOBILE ---------- */
     @media (max-width: 920px) {
+      .fit-stage { height: 320px; }
+      .review-grid { grid-template-columns: 1fr; }
       .nav-inner { gap: 0.8rem; }
       .logo { margin-right: auto; }
       .nav-burger { display: block; }
@@ -534,6 +626,7 @@
 
       <div class="hero-overlay">
         <div class="hero-copy" id="heroCopy">
+          <div class="avail-pill" id="availPill" hidden><span class="dot"></span><span id="availText"></span></div>
           <h1>Storage,<br>engineered to last.</h1>
           <p class="hero-sub">Drive-up shipping containers in a gated compound at 5-7 Sherwood Road, Bermagui. From $150 a month.</p>
           <div class="hero-actions">
@@ -602,7 +695,7 @@
         <div class="price-photo"><img src="static/container5.jpg" alt="Inside a full 20ft storage container" loading="lazy" /></div>
         <div class="price-body">
           <div class="price-name">Full 20ft container</div>
-          <div class="price-amount">$250 <small>/ month</small></div>
+          <div class="price-amount">$<span class="count" data-count="250">250</span> <small>/ month</small></div>
           <div class="price-dims">6.0m long, 2.4m wide, 2.4m high</div>
           <div class="price-fits">Fits a 2-3 bedroom home of furniture, a workshop's worth of tools, or a boat on a trailer.</div>
         </div>
@@ -611,13 +704,63 @@
         <div class="price-photo"><img src="static/273046354_105404948728193_6834059163946636715_n.jpg" alt="Half container storage unit with doors open" loading="lazy" /></div>
         <div class="price-body">
           <div class="price-name">Half 20ft container</div>
-          <div class="price-amount">$150 <small>/ month</small></div>
+          <div class="price-amount">$<span class="count" data-count="150">150</span> <small>/ month</small></div>
           <div class="price-dims">3.0m long, 2.4m wide, 2.4m high</div>
           <div class="price-fits">Fits a 1 bedroom flat's worth, or a car or bike plus boxes.</div>
         </div>
       </div>
     </div>
     <p class="price-foot reveal">Minimum one month upfront to start, then pay as you go. You can pay as far ahead as you like. Moving out just takes 14 days' notice.</p>
+  </section>
+
+  <!-- WILL IT FIT? interactive visualiser -->
+  <section id="fit">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Will it fit?</span>
+      <h2>See your stuff in the box.</h2>
+      <p>Pick what you need to store and we'll load it into a true-scale 20ft container.</p>
+    </div>
+    <div class="fit-wrap reveal">
+      <div class="fit-controls" role="group" aria-label="Choose what to store">
+        <button class="fit-btn" data-fit="home">2&ndash;3 bedroom home</button>
+        <button class="fit-btn" data-fit="flat">1 bedroom flat</button>
+        <button class="fit-btn" data-fit="car">A car</button>
+        <button class="fit-btn" data-fit="boat">Boat on trailer</button>
+        <button class="fit-btn" data-fit="tools">Tradie's gear</button>
+      </div>
+      <div class="fit-stage" id="fitStage">
+        <canvas id="fitCanvas" aria-label="3D view of belongings inside a 20ft container"></canvas>
+      </div>
+      <p class="fit-verdict" id="fitVerdict"></p>
+      <p class="fit-hint">Drag to look around</p>
+    </div>
+  </section>
+
+  <!-- REVIEWS: hidden until real customer quotes are added.
+       To go live: replace the three quotes below with real ones (with each
+       customer's permission) and delete the `hidden` attribute. -->
+  <section id="reviews" hidden>
+    <div class="sec-head reveal">
+      <span class="eyebrow">What locals say</span>
+      <h2>Trusted around Bermagui.</h2>
+    </div>
+    <div class="review-grid">
+      <blockquote class="review reveal">
+        <div class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        REPLACE WITH REAL QUOTE
+        <footer>&mdash; Name, Bermagui</footer>
+      </blockquote>
+      <blockquote class="review reveal">
+        <div class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        REPLACE WITH REAL QUOTE
+        <footer>&mdash; Name, Bermagui</footer>
+      </blockquote>
+      <blockquote class="review reveal">
+        <div class="stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        REPLACE WITH REAL QUOTE
+        <footer>&mdash; Name, Bermagui</footer>
+      </blockquote>
+    </div>
   </section>
 
   <!-- FACILITY -->
@@ -781,6 +924,108 @@
       els.forEach(function (e) { io.observe(e); });
     })();
 
+    // Availability pill: reads availability.json (set "show": true to enable).
+    fetch('availability.json?cb=' + Date.now())
+      .then(function (r) { return r.json(); })
+      .then(function (a) {
+        if (!a || !a.show) return;
+        var pill = document.getElementById('availPill');
+        var txt = document.getElementById('availText');
+        if (a.free > 0) {
+          txt.textContent = a.free + (a.free === 1 ? ' container' : ' containers') + ' free right now';
+        } else {
+          pill.classList.add('full');
+          txt.textContent = 'Currently full — enquire to join the waitlist';
+        }
+        pill.hidden = false;
+      }).catch(function () {});
+
+    // Price counters: tick up when the pricing section scrolls in.
+    (function () {
+      var counters = document.querySelectorAll('.count');
+      if (!counters.length || !('IntersectionObserver' in window)) return;
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          io.unobserve(en.target);
+          var el = en.target, target = parseInt(el.dataset.count, 10), t0 = null;
+          function step(ts) {
+            if (!t0) t0 = ts;
+            var k = Math.min(1, (ts - t0) / 900);
+            el.textContent = Math.round(target * (1 - Math.pow(1 - k, 3)));
+            if (k < 1) requestAnimationFrame(step);
+          }
+          requestAnimationFrame(step);
+        });
+      }, { threshold: 0.6 });
+      counters.forEach(function (c) { io.observe(c); });
+    })();
+
+    // Desktop-only flourishes: magnetic buttons + price-card tilt.
+    if (window.matchMedia('(pointer: fine)').matches) {
+      document.querySelectorAll('.btn, .nav-phone, .fit-btn').forEach(function (b) {
+        b.addEventListener('mousemove', function (e) {
+          var r = b.getBoundingClientRect();
+          var dx = (e.clientX - r.left - r.width / 2) / r.width;
+          var dy = (e.clientY - r.top - r.height / 2) / r.height;
+          b.style.translate = (dx * 6) + 'px ' + (dy * 4) + 'px';
+        });
+        b.addEventListener('mouseleave', function () { b.style.translate = '0px 0px'; });
+      });
+      document.querySelectorAll('.price-card').forEach(function (card) {
+        card.addEventListener('mousemove', function (e) {
+          var r = card.getBoundingClientRect();
+          card.classList.add('tilting');
+          card.style.setProperty('--ry', ((e.clientX - r.left) / r.width - 0.5) * 5 + 'deg');
+          card.style.setProperty('--rx', (0.5 - (e.clientY - r.top) / r.height) * 4 + 'deg');
+        });
+        card.addEventListener('mouseleave', function () {
+          card.classList.remove('tilting');
+          card.style.removeProperty('--rx'); card.style.removeProperty('--ry');
+        });
+      });
+    }
+
+    // Gallery: drag to scroll with a touch of tilt.
+    (function () {
+      var gal = document.querySelector('.gallery');
+      if (!gal) return;
+      var down = false, startX = 0, startScroll = 0, vel = 0, lastT = 0, lastL = 0;
+      gal.addEventListener('pointerdown', function (e) {
+        down = true; startX = e.clientX; startScroll = gal.scrollLeft;
+        lastT = performance.now(); lastL = gal.scrollLeft;
+        gal.classList.add('dragging');
+        try { gal.setPointerCapture(e.pointerId); } catch (_) {}
+      });
+      gal.addEventListener('pointermove', function (e) {
+        if (!down) return;
+        gal.scrollLeft = startScroll - (e.clientX - startX);
+        var now = performance.now();
+        vel = (gal.scrollLeft - lastL) / Math.max(1, now - lastT);
+        lastT = now; lastL = gal.scrollLeft;
+        gal.style.setProperty('--gtilt', Math.max(-4, Math.min(4, -vel * 3)) + 'deg');
+      });
+      function up() {
+        down = false; gal.classList.remove('dragging');
+        gal.style.setProperty('--gtilt', '0deg');
+      }
+      gal.addEventListener('pointerup', up);
+      gal.addEventListener('pointercancel', up);
+    })();
+
+    // Soft flash on nav jumps so anchor hops feel like page transitions.
+    (function () {
+      var flash = document.createElement('div');
+      flash.className = 'page-flash';
+      document.body.appendChild(flash);
+      document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+        a.addEventListener('click', function () {
+          flash.classList.add('go');
+          setTimeout(function () { flash.classList.remove('go'); }, 320);
+        });
+      });
+    })();
+
     // Mobile nav: hamburger toggles the dropdown; any link tap closes it.
     (function () {
       var burger = document.getElementById('navBurger');
@@ -802,7 +1047,8 @@
   <script src="vendor/three.min.js?v=2" defer></script>
   <script src="vendor/gsap.min.js?v=2" defer></script>
   <script src="vendor/ScrollTrigger.min.js?v=2" defer></script>
-  <script src="hero3d.js?v=14" defer></script>
+  <script src="hero3d.js?v=15" defer></script>
+  <script src="fitviz.js?v=1" defer></script>
   <script src="chat-widget.js?v=3" defer></script>
 </body>
 </html>

@@ -265,6 +265,72 @@
   register(doorL, [14, 0, 7], [0, -0.9, 0]);
   register(doorR, [14, 0, -7], [0, 0.9, 0]);
 
+  // ----- scrollytelling cargo: gear flies in while the doors are open -----
+  var cardboard = new T.MeshStandardMaterial({ color: 0xa9824f, roughness: 0.9, metalness: 0.0 });
+  var cardboard2 = new T.MeshStandardMaterial({ color: 0x97713f, roughness: 0.9, metalness: 0.0 });
+  var fabricMat = new T.MeshStandardMaterial({ color: 0x5c6258, roughness: 0.95, metalness: 0.0 });
+  var rugMat = new T.MeshStandardMaterial({ color: 0x7a4a3a, roughness: 0.92, metalness: 0.0 });
+  var floorY = -H / 2 + 0.19;
+  var cargo = [];
+  function cargoItem(mesh, home, from, t0) {
+    mesh.position.copy(from);
+    mesh.userData.home = home; mesh.userData.from = from; mesh.userData.t0 = t0;
+    mesh.traverse(function (o) {
+      if (o.isMesh) {
+        o.castShadow = true;
+        o.material = o.material.clone();
+        o.material.transparent = true; o.material.opacity = 0;
+      }
+    });
+    root.add(mesh); cargo.push(mesh);
+  }
+  // moving boxes, staggered along the scroll story
+  // [w, h, d, x, stackBase (height of whatever is underneath), z, delay, mat]
+  [
+    [0.62, 0.62, 0.62, -2.3,  0,    0.55, 0.00, cardboard],
+    [0.55, 0.5,  0.6,  -2.3,  0.62, 0.55, 0.03, cardboard2],
+    [0.62, 0.62, 0.62, -2.3,  0,   -0.55, 0.06, cardboard2],
+    [0.5,  0.45, 0.5,  -1.55, 0,   -0.6,  0.09, cardboard],
+    [0.6,  0.55, 0.58, -1.55, 0,    0.6,  0.12, cardboard2],
+    [0.5,  0.5,  0.5,  -1.55, 0.45, -0.6, 0.15, cardboard]
+  ].forEach(function (b) {
+    var m = new T.Mesh(new T.BoxGeometry(b[0], b[1], b[2]), b[7]);
+    cargoItem(m, new T.Vector3(b[3], floorY + b[4] + b[1] / 2, b[5]),
+      new T.Vector3(11 + Math.random() * 3, 1.5 + Math.random() * 2, (Math.random() - 0.5) * 8), b[6]);
+  });
+  // a sofa
+  (function () {
+    var sofa = new T.Group();
+    var seat = new T.Mesh(new T.BoxGeometry(1.7, 0.42, 0.75), fabricMat); seat.position.y = 0.21; sofa.add(seat);
+    var back = new T.Mesh(new T.BoxGeometry(1.7, 0.5, 0.22), fabricMat); back.position.set(0, 0.62, -0.26); sofa.add(back);
+    [-1, 1].forEach(function (s) {
+      var arm = new T.Mesh(new T.BoxGeometry(0.22, 0.3, 0.75), fabricMat);
+      arm.position.set(s * 0.74, 0.5, 0); sofa.add(arm);
+    });
+    cargoItem(sofa, new T.Vector3(0.1, floorY, 0), new T.Vector3(13, 2.5, 5), 0.18);
+  })();
+  // a rolled rug leaning in the corner
+  (function () {
+    var rug = new T.Mesh(new T.CylinderGeometry(0.14, 0.14, 1.9, 12), rugMat);
+    rug.rotation.z = 0.12;
+    cargoItem(rug, new T.Vector3(1.35, floorY + 0.93, -0.75), new T.Vector3(12, 3.5, -4), 0.24);
+  })();
+
+  // ----- padlock: clicks on when the doors close ("Secure by design") -----
+  var padlock = new T.Group();
+  (function () {
+    var brass = new T.MeshStandardMaterial({ color: 0xc8a13a, roughness: 0.35, metalness: 0.9, envMapIntensity: 1.1 });
+    var shackleM = new T.MeshStandardMaterial({ color: 0xb9b6ae, roughness: 0.3, metalness: 0.95, envMapIntensity: 1.0 });
+    var body = new T.Mesh(new T.BoxGeometry(0.17, 0.2, 0.07), brass); padlock.add(body);
+    var sh = new T.Mesh(new T.TorusGeometry(0.066, 0.018, 8, 18, Math.PI), shackleM);
+    sh.position.y = 0.1; padlock.add(sh);
+    padlock.traverse(function (o) { if (o.isMesh) o.castShadow = true; });
+    // hangs off the left-door locking handle
+    padlock.position.set(0.16, -0.36, -(W / 4 - 0.04) + 0.28);
+    padlock.scale.setScalar(0.001);
+    doorL.children[0].add(padlock);
+  })();
+
   var interiorLight = new T.PointLight(0xffcaa0, 0, 8, 1.8);
   interiorLight.position.set(0.6, 0.3, 0);
   root.add(interiorLight);
@@ -333,7 +399,7 @@
   }
 
   // ----- doors -----
-  var doorsOpen = false;
+  var doorsOpen = false, clickedOpen = false, scrollDoors = false;
   function setDoors(open, dur) {
     doorsOpen = open;
     if (!hasGSAP) {
@@ -362,6 +428,11 @@
   ];
   var _cp = new T.Vector3(), _ct = new T.Vector3();
   function smooth(t) { return t * t * (3 - 2 * t); }
+  // smoothstep between two scroll positions
+  function ss3(p, a, b) {
+    var t = Math.max(0, Math.min(1, (p - a) / (b - a)));
+    return t * t * (3 - 2 * t);
+  }
   function cameraAt(p) {
     var a = KF[0], b = KF[KF.length - 1], i;
     for (i = 0; i < KF.length - 1; i++) {
@@ -404,13 +475,45 @@
         pointer.x = ((e.clientX - r.left) / r.width) * 2 - 1;
         pointer.y = -((e.clientY - r.top) / r.height) * 2 + 1;
         ray.setFromCamera(pointer, camera);
-        if (ray.intersectObjects([doorL, doorR], true).length) { setDoors(!doorsOpen); poke(); }
+        if (scrollProg < 0.45 && ray.intersectObjects([doorL, doorR], true).length) {
+          setDoors(!doorsOpen); clickedOpen = doorsOpen; poke();
+        } else if (ray.intersectObject(root, true).length) {
+          tapTimes.push(performance.now());
+          tapTimes = tapTimes.filter(function (t) { return performance.now() - t < 1300; });
+          if (tapTimes.length >= 3) { tapTimes = []; honk(); }
+        }
       }
     }
   });
   canvas.addEventListener("pointerleave", function () { targetTiltX = 0; targetTiltY = 0; });
   canvas.style.cursor = "grab";
   var ray = new T.Raycaster(), pointer = new T.Vector2();
+
+  // Easter egg: tap the container three times quickly and it jumps with a
+  // steel CLUNK (synthesised, no audio file).
+  var tapTimes = [], honkUntil = 0;
+  function honk() {
+    honkUntil = performance.now() + 1100;
+    if (hasGSAP) {
+      gsap.to(root.position, { y: H / 2 + 0.55, duration: 0.22, ease: "power2.out" });
+      gsap.to(root.position, { y: H / 2, duration: 0.6, ease: "bounce.out", delay: 0.22 });
+      gsap.fromTo(root.rotation, { z: 0 }, { z: 0.04, duration: 0.08, yoyo: true, repeat: 3, delay: 0.2 });
+    }
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      var ac = honk.ac || (honk.ac = new AC());
+      var t0 = ac.currentTime + 0.18;
+      // low metallic thud: two detuned sines + noise burst, fast decay
+      [82, 124].forEach(function (f, i) {
+        var o = ac.createOscillator(), g = ac.createGain();
+        o.type = "triangle"; o.frequency.value = f;
+        g.gain.setValueAtTime(i ? 0.18 : 0.3, t0);
+        g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.4);
+        o.connect(g).connect(ac.destination);
+        o.start(t0); o.stop(t0 + 0.45);
+      });
+    } catch (_) {}
+  }
 
   if (window.DeviceOrientationEvent) {
     window.addEventListener("deviceorientation", function (ev) {
@@ -453,9 +556,43 @@
     var now = performance.now(), idle = now - lastInteract > 2800;
     var p = scrollProg;
 
-    // doors auto-open for the access chapter
-    var wantOpen = p > 0.5 && p < 0.9;
-    if (wantOpen !== doorsOpen) setDoors(wantOpen, 0.9);
+    // ----- scrollytelling: doors open, gear loads in, doors shut, lock on --
+    if (p > 0.45) {
+      if (!scrollDoors) {   // scroll takes over: stop any click-toggle tween
+        if (hasGSAP) { gsap.killTweensOf(doorL.rotation); gsap.killTweensOf(doorR.rotation); gsap.killTweensOf(interiorLight); }
+        scrollDoors = true; clickedOpen = false;
+      }
+      // doors swing open for "Drive up. Load in." and close for "Secure by design"
+      var dprog = ss3(p, 0.47, 0.56) * (1 - ss3(p, 0.78, 0.855));
+      doorL.rotation.y = doorL.userData.open * dprog;
+      doorR.rotation.y = doorR.userData.open * dprog;
+      interiorLight.intensity = 2.6 * dprog;
+      doorsOpen = dprog > 0.5;
+      // cargo flies in while the doors are open (fully scrub-reversible)
+      var ci, item, pi, e;
+      for (ci = 0; ci < cargo.length; ci++) {
+        item = cargo[ci];
+        pi = Math.max(0, Math.min(1, ((p - 0.54) - item.userData.t0 * 0.55) / 0.08));
+        e = 1 - Math.pow(1 - pi, 3);   // easeOutCubic
+        item.position.lerpVectors(item.userData.from, item.userData.home, e);
+        item.rotation.y = (1 - e) * 1.6;
+        item.traverse(function (o) { if (o.isMesh) o.material.opacity = Math.min(1, pi * 2); });
+      }
+      // padlock pops on once the doors are shut
+      var ps = ss3(p, 0.86, 0.905);
+      var pop = ps * (1 + 0.35 * Math.sin(ps * Math.PI));   // slight overshoot
+      padlock.scale.setScalar(Math.max(0.001, pop));
+      padlock.rotation.z = (1 - ps) * 0.7;
+    } else {
+      if (scrollDoors) {
+        scrollDoors = false;
+        if (doorsOpen && !clickedOpen) setDoors(false, 0.7);
+      }
+      padlock.scale.setScalar(0.001);
+      for (var cj = 0; cj < cargo.length; cj++) {
+        cargo[cj].traverse(function (o) { if (o.isMesh) o.material.opacity = 0; });
+      }
+    }
 
     // container: mostly still (camera orbits). Drag adds spin; gentle idle drift at top.
     spinVel *= 0.92;
@@ -465,7 +602,7 @@
     // scroll, so every chapter always frames the exact same side of the box
     // (doors face the camera in the doors chapter, however long you idled).
     root.rotation.y = -0.42 + spinOffset * Math.max(0, 1 - p * 5);
-    root.position.y += ((H / 2 + idleBob) - root.position.y) * 0.1;
+    if (now > honkUntil) root.position.y += ((H / 2 + idleBob) - root.position.y) * 0.1;
 
     // camera flies along keyframes by scroll; parallax nudges only near the top
     cameraAt(p);
