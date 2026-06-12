@@ -1,8 +1,9 @@
 /* Bermagui Budget Storage — "Will it fit?" visualiser.
-   A second, lightweight Three.js scene: a ghost-walled 20ft container you can
-   spin, filled with rough true-scale shapes for whatever the visitor needs to
-   store. Lazy-initialised only when the section scrolls into view.
-   Uses the same self-hosted three.min.js global as the hero. */
+   Photoreal dollhouse: the container uses the same scanned PBR maps as the
+   hero, and whichever walls face the camera fade out automatically as it
+   spins, so you always see inside a realistic box (live cutaway, like the
+   pre-rendered images storage sites use — but interactive).
+   Lazy-initialised only when the section scrolls into view. */
 (function () {
   "use strict";
 
@@ -16,10 +17,10 @@
   var L = 5.9, W = 2.35, H = 2.39;
   var FLOOR = -H / 2;
 
-  var started = false, renderer, scene, camera, root, items, divider;
+  var started = false, renderer, scene, camera, root, items, divider, walls = [];
   var spin = 0.6, spinVel = 0, dragging = false, lastX = 0, autoSpin = true;
+  var _camLocal = new T.Vector3();
 
-  // ---------- materials ----------
   function mat(c, r, m) {
     return new T.MeshStandardMaterial({ color: c, roughness: r == null ? 0.85 : r, metalness: m || 0 });
   }
@@ -28,18 +29,26 @@
   function buildScene() {
     renderer = new T.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = T.PCFSoftShadowMap;
     if (T.SRGBColorSpace) renderer.outputColorSpace = T.SRGBColorSpace;
     renderer.toneMapping = T.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    renderer.toneMappingExposure = 1.15;
 
     scene = new T.Scene();
     camera = new T.PerspectiveCamera(33, 1, 0.5, 60);
     camera.position.set(8.2, 4.6, 9.0);
     camera.lookAt(0, -0.3, 0);
 
-    scene.add(new T.HemisphereLight(0xfff4e4, 0x44403a, 0.9));
-    var key = new T.DirectionalLight(0xfff0dc, 1.6);
-    key.position.set(-6, 9, 7); scene.add(key);
+    scene.add(new T.HemisphereLight(0xfff4e4, 0x44403a, 0.65));
+    var key = new T.DirectionalLight(0xfff0dc, 1.7);
+    key.position.set(-5, 9, 7);
+    key.castShadow = true;
+    key.shadow.mapSize.set(1024, 1024);
+    var sc = key.shadow.camera;
+    sc.left = -5; sc.right = 5; sc.top = 5; sc.bottom = -5; sc.near = 2; sc.far = 30;
+    key.shadow.bias = -0.0005; key.shadow.normalBias = 0.02;
+    scene.add(key);
     var fill = new T.DirectionalLight(0xe8eef6, 0.5);
     fill.position.set(7, 3, -6); scene.add(fill);
 
@@ -51,46 +60,119 @@
     root.rotation.y = spin;
     scene.add(root);
 
-    // ghost container: translucent tan shell + solid floor and frame
-    var shellMat = new T.MeshStandardMaterial({
-      color: 0xc2a567, roughness: 0.6, metalness: 0.1,
-      transparent: true, opacity: 0.22, side: T.DoubleSide, depthWrite: false
+    // ---- environment for realistic reflections (same sky as the hero) ----
+    var pmrem = new T.PMREMGenerator(renderer);
+    pmrem.compileEquirectangularShader();
+    new T.TextureLoader().load("static/3d/env.jpg", function (tex) {
+      tex.mapping = T.EquirectangularReflectionMapping;
+      if (T.SRGBColorSpace) tex.colorSpace = T.SRGBColorSpace;
+      scene.environment = pmrem.fromEquirectangular(tex).texture;
+      tex.dispose();
     });
-    function panel(w, h, px, py, pz, ry) {
-      var m = new T.Mesh(new T.PlaneGeometry(w, h), shellMat);
-      m.position.set(px, py, pz); m.rotation.y = ry || 0;
-      root.add(m); return m;
+
+    // ---- photoreal container shell (scanned PBR maps, recoloured tan) ----
+    // Each wall has its OWN material so its opacity can fade independently
+    // when it faces the camera (dollhouse cutaway).
+    var maxAniso = renderer.capabilities.getMaxAnisotropy();
+    var wallMats = [];
+    function wallMat(rx) {
+      var m = new T.MeshStandardMaterial({
+        color: 0xc2a567, roughness: 0.55, metalness: 0.2, envMapIntensity: 0.9,
+        normalScale: new T.Vector2(1.0, 1.0),
+        transparent: true, opacity: 1, depthWrite: false, side: T.DoubleSide
+      });
+      wallMats.push({ mat: m, rx: rx });
+      return m;
     }
-    panel(L, H, 0, 0, -W / 2);                       // far wall
-    panel(L, H, 0, 0, W / 2);                        // near wall
-    panel(W, H, -L / 2, 0, 0, Math.PI / 2);          // back
-    panel(W, H, L / 2, 0, 0, Math.PI / 2);           // door end
-    var roof = new T.Mesh(new T.PlaneGeometry(L, W), shellMat);
-    roof.rotation.x = -Math.PI / 2; roof.position.y = H / 2; root.add(roof);
+    function applyMaps(base, key) {
+      wallMats.forEach(function (e) {
+        var t = base.clone();
+        t.wrapS = t.wrapT = T.RepeatWrapping;
+        t.anisotropy = maxAniso;
+        t.repeat.set(e.rx, 1.0);
+        t.needsUpdate = true;
+        e.mat[key] = t;
+        if (key === "map") e.mat.color.set(0xffffff);
+        e.mat.needsUpdate = true;
+      });
+    }
+    var texLoader = new T.TextureLoader();
+    texLoader.load("static/3d/container_diff.jpg", function (t) {
+      var img = t.image;
+      var c = document.createElement("canvas");
+      c.width = img.width; c.height = img.height;
+      var g = c.getContext("2d");
+      g.drawImage(img, 0, 0);
+      var id = g.getImageData(0, 0, c.width, c.height), d = id.data;
+      var sum = 0, i;
+      for (i = 0; i < d.length; i += 4) sum += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+      var avg = sum / (d.length / 4);
+      for (i = 0; i < d.length; i += 4) {
+        var l = (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / avg;
+        d[i] = Math.min(255, 172 * l); d[i + 1] = Math.min(255, 144 * l); d[i + 2] = Math.min(255, 86 * l);
+      }
+      g.putImageData(id, 0, 0);
+      var tex = new T.CanvasTexture(c);
+      if (T.SRGBColorSpace) tex.colorSpace = T.SRGBColorSpace;
+      tex.generateMipmaps = true;
+      tex.minFilter = T.LinearMipmapLinearFilter;
+      applyMaps(tex, "map");
+    });
+    texLoader.load("static/3d/container_nor.jpg", function (t) { applyMaps(t, "normalMap"); });
+    texLoader.load("static/3d/container_arm.jpg", function (t) {
+      applyMaps(t, "aoMap"); applyMaps(t, "roughnessMap"); applyMaps(t, "metalnessMap");
+      wallMats.forEach(function (e) { e.mat.roughness = 0.85; e.mat.metalness = 1; });
+    });
 
+    // walls: [w, h, x, y, z, rotY, outwardNormal, textureRepeat]
+    function wall(w, h, x, z, ry, nx, nz, rx) {
+      var m = new T.Mesh(new T.PlaneGeometry(w, h), wallMat(rx));
+      m.position.set(x, 0, z); m.rotation.y = ry;
+      root.add(m);
+      walls.push({ mesh: m, n: new T.Vector3(nx, 0, nz) });
+      return m;
+    }
+    wall(L, H, 0, -W / 2, 0, 0, -1, 3);              // far side
+    wall(L, H, 0, W / 2, 0, 0, 1, 3);                // near side
+    wall(W, H, -L / 2, 0, Math.PI / 2, -1, 0, 1.2);  // back
+    wall(W, H, L / 2, 0, Math.PI / 2, 1, 0, 1.2);    // door end
+    var roof = new T.Mesh(new T.PlaneGeometry(L, W), wallMat(3));
+    roof.rotation.x = -Math.PI / 2; roof.position.y = H / 2;
+    root.add(roof);
+    walls.push({ mesh: roof, n: new T.Vector3(0, 1, 0) });
+
+    // plywood floor (always solid, catches the shadows)
     var floor = new T.Mesh(new T.BoxGeometry(L + 0.16, 0.14, W + 0.16), mat(0x8d7148, 0.92));
-    floor.position.y = FLOOR - 0.07; root.add(floor);
+    floor.position.y = FLOOR - 0.07; floor.receiveShadow = true; root.add(floor);
 
-    // frame edges
+    // steel frame stays solid: it reads as a real box even with walls faded
     var frameMat = mat(0x84703e, 0.55, 0.25);
     function rail(sx, sy, sz, x, y, z) {
       var m = new T.Mesh(new T.BoxGeometry(sx, sy, sz), frameMat);
-      m.position.set(x, y, z); root.add(m);
+      m.position.set(x, y, z); m.castShadow = true; root.add(m);
     }
     var rt = 0.09;
     [-1, 1].forEach(function (iy) {
       [-1, 1].forEach(function (iz) { rail(L + 0.16, rt, rt, 0, iy * H / 2, iz * W / 2); });
       [-1, 1].forEach(function (ix) { rail(rt, rt, W + 0.16, ix * L / 2, iy * H / 2, 0); });
     });
+    var castM = mat(0x35322c, 0.6, 0.45);
     [-1, 1].forEach(function (ix) {
-      [-1, 1].forEach(function (iz) { rail(rt, H + 0.16, rt, ix * L / 2, 0, iz * W / 2); });
+      [-1, 1].forEach(function (iz) {
+        rail(rt, H + 0.16, rt, ix * L / 2, 0, iz * W / 2);
+        [-1, 1].forEach(function (iy) {
+          var cc = new T.Mesh(new T.BoxGeometry(0.2, 0.2, 0.2), castM);
+          cc.position.set(ix * L / 2, iy * H / 2, iz * W / 2);
+          root.add(cc);
+        });
+      });
     });
 
     // half-container divider (shown for "half" verdicts)
     divider = new T.Mesh(new T.PlaneGeometry(W, H),
       new T.MeshBasicMaterial({ color: 0xc0510a, transparent: true, opacity: 0.0, side: T.DoubleSide, depthWrite: false }));
     divider.rotation.y = Math.PI / 2;
-    divider.position.x = -L / 2 + 3.0;   // 3m mark = half container
+    divider.position.x = -L / 2 + 3.0;
     root.add(divider);
 
     items = new T.Group();
@@ -124,10 +206,23 @@
     camera.aspect = w / h; camera.updateProjectionMatrix();
   }
 
+  var _n = new T.Vector3();
   function tick() {
     spinVel *= 0.93;
     if (!dragging) spin += spinVel + (autoSpin ? 0.0022 : 0);
     root.rotation.y = spin;
+
+    // dollhouse cutaway: walls facing the camera fade out
+    _camLocal.copy(camera.position);
+    root.worldToLocal(_camLocal);
+    _camLocal.normalize();
+    for (var i = 0; i < walls.length; i++) {
+      var w = walls[i];
+      var facing = _n.copy(w.n).dot(_camLocal);          // >0 = faces camera
+      var target = facing > 0.18 ? 0.06 : 1.0;
+      w.mesh.material.opacity += (target - w.mesh.material.opacity) * 0.14;
+    }
+
     renderer.render(scene, camera);
     requestAnimationFrame(tick);
   }
@@ -183,10 +278,9 @@
     hull.position.y = 1.0; g.add(hull);
     var bow = new T.Mesh(new T.ConeGeometry(0.78, 0.95, 4), hullM);
     bow.rotation.z = -Math.PI / 2; bow.rotation.y = Math.PI / 4;
-    bow.scale.z = 1.45;   // widen to match the hull beam
+    bow.scale.z = 1.45;
     bow.position.set(-2.35, 1.0, 0); g.add(bow);
     var motor = new T.Mesh(new T.BoxGeometry(0.32, 0.65, 0.38), dark); motor.position.set(2.05, 1.12, 0); g.add(motor);
-    // trailer
     var frame = new T.Mesh(new T.BoxGeometry(4.2, 0.12, 1.4), steel); frame.position.y = 0.5; g.add(frame);
     var drawbar = new T.Mesh(new T.BoxGeometry(0.7, 0.08, 0.12), steel);
     drawbar.position.set(-2.3, 0.46, 0); g.add(drawbar);
@@ -209,7 +303,6 @@
         leg.position.set(px, 0.925, pz); g.add(leg);
       });
     });
-    // bins on shelves
     for (var j = 0; j < 6; j++) {
       var b = new T.Mesh(new T.BoxGeometry(0.45, 0.32, 0.45), j % 2 ? cardboardA : mat(0x445261, 0.8));
       b.position.set(-0.6 + (j % 3) * 0.6, 0.32 + Math.floor(j / 3) * 0.55, 0); g.add(b);
@@ -274,8 +367,8 @@
     if (!p || !items) return;
     while (items.children.length) items.remove(items.children[0]);
     p.build(items);
+    items.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
     divider.material.opacity = p.half ? 0.28 : 0;
-    // pop-in animation
     if (window.gsap) {
       items.children.forEach(function (g, i) {
         var ty = g.position.y;
@@ -296,7 +389,6 @@
     }
   }
 
-  // buttons
   document.querySelectorAll(".fit-btn").forEach(function (b) {
     b.addEventListener("click", function () {
       document.querySelectorAll(".fit-btn").forEach(function (x) { x.classList.remove("on"); });
@@ -306,7 +398,6 @@
     });
   });
 
-  // lazy init when scrolled near
   if ("IntersectionObserver" in window) {
     var io = new IntersectionObserver(function (en) {
       if (en[0].isIntersecting) {
