@@ -159,8 +159,12 @@
   var steelDark = new T.MeshStandardMaterial({ color: 0x84703e, roughness: 0.52, metalness: 0.25, envMapIntensity: 0.8, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   var castMat = new T.MeshStandardMaterial({ color: 0x35322c, roughness: 0.6, metalness: 0.45, envMapIntensity: 0.7, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   var rodMat = new T.MeshStandardMaterial({ color: 0xb8b4ac, roughness: 0.38, metalness: 0.85, envMapIntensity: 0.8 });
-  var gasketMat = new T.MeshStandardMaterial({ color: 0x14130f, roughness: 0.95, metalness: 0.0 });
+  // Door inner faces are painted steel like the rest of the box; real gasket
+  // rubber only lines the edges, so the "gasket" panel reads as paint.
+  var gasketMat = new T.MeshStandardMaterial({ color: 0x8a774e, roughness: 0.85, metalness: 0.1 });
   var floorMat = new T.MeshStandardMaterial({ color: 0x241f19, roughness: 0.8, metalness: 0.3, polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2 });
+  // Real container floors are marine plywood: warm brown top surface.
+  var plyMat = new T.MeshStandardMaterial({ color: 0x8d7148, roughness: 0.92, metalness: 0.0, polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 2 });
   var interiorMat = new T.MeshStandardMaterial({ color: 0xb8a06a, roughness: 0.85, metalness: 0.1, side: T.BackSide });
 
   // ----- dimensions (20ft ISO, metres) -----
@@ -186,7 +190,8 @@
   // Floor/roof slabs are recessed 3cm inside the wall planes: their dark side
   // faces previously sat EXACTLY on the same plane as the tan walls where they
   // overlap, which z-fought as a stippled band along the bottom/top edges.
-  var floor = box(L - 0.06, 0.18, W - 0.06, floorMat);
+  // material order: +x,-x,+y(top),-y,+z,-z — plywood on top only
+  var floor = box(L - 0.06, 0.18, W - 0.06, [floorMat, floorMat, plyMat, floorMat, floorMat, floorMat]);
   floor.position.set(0, -H / 2 + 0.09, 0);
   root.add(floor); register(floor, [0, -9, 0], [0, 0, 0]);
 
@@ -260,8 +265,8 @@
   register(doorL, [14, 0, 7], [0, -0.9, 0]);
   register(doorR, [14, 0, -7], [0, 0.9, 0]);
 
-  var interiorLight = new T.PointLight(0xffcaa0, 0, 7, 2);
-  interiorLight.position.set(-1.4, 0.2, 0);
+  var interiorLight = new T.PointLight(0xffcaa0, 0, 8, 1.8);
+  interiorLight.position.set(0.6, 0.3, 0);
   root.add(interiorLight);
 
   // back-wall sign (visible when doors open)
@@ -334,11 +339,11 @@
     if (!hasGSAP) {
       doorL.rotation.y = open ? doorL.userData.open : 0;
       doorR.rotation.y = open ? doorR.userData.open : 0;
-      interiorLight.intensity = open ? 1.8 : 0; return;
+      interiorLight.intensity = open ? 2.6 : 0; return;
     }
     gsap.to(doorL.rotation, { y: open ? doorL.userData.open : 0, duration: dur || 1.0, ease: "power2.inOut" });
     gsap.to(doorR.rotation, { y: open ? doorR.userData.open : 0, duration: dur || 1.0, ease: "power2.inOut" });
-    gsap.to(interiorLight, { intensity: open ? 2.0 : 0, duration: dur || 1.0 });
+    gsap.to(interiorLight, { intensity: open ? 2.6 : 0, duration: dur || 1.0 });
   }
 
   // ----- camera keyframes (Apple-style orbit) -----
