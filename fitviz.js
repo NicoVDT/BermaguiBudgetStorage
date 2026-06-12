@@ -177,18 +177,22 @@
     return g;
   }
   function boat(x) {
+    // whole package (bow tip to motor) ~5.4m so it sits INSIDE the 5.9m box
     var g = new T.Group(), hullM = mat(0xe8e4da, 0.5);
-    var hull = new T.Mesh(new T.BoxGeometry(4.6, 0.75, 1.85), hullM);
-    hull.scale.set(1, 1, 1); hull.position.y = 1.0; g.add(hull);
-    var bow = new T.Mesh(new T.ConeGeometry(0.92, 1.1, 4), hullM);
+    var hull = new T.Mesh(new T.BoxGeometry(3.8, 0.7, 1.7), hullM);
+    hull.position.y = 1.0; g.add(hull);
+    var bow = new T.Mesh(new T.ConeGeometry(0.78, 0.95, 4), hullM);
     bow.rotation.z = -Math.PI / 2; bow.rotation.y = Math.PI / 4;
-    bow.position.set(-2.85, 1.0, 0); g.add(bow);
-    var motor = new T.Mesh(new T.BoxGeometry(0.35, 0.7, 0.4), dark); motor.position.set(2.45, 1.15, 0); g.add(motor);
+    bow.scale.z = 1.45;   // widen to match the hull beam
+    bow.position.set(-2.35, 1.0, 0); g.add(bow);
+    var motor = new T.Mesh(new T.BoxGeometry(0.32, 0.65, 0.38), dark); motor.position.set(2.05, 1.12, 0); g.add(motor);
     // trailer
-    var frame = new T.Mesh(new T.BoxGeometry(4.4, 0.12, 1.5), steel); frame.position.y = 0.5; g.add(frame);
-    [-0.9, 0.9].forEach(function (wz) {
-      var wheel = new T.Mesh(new T.CylinderGeometry(0.28, 0.28, 0.2, 18), dark);
-      wheel.rotation.x = Math.PI / 2; wheel.position.set(0.9, 0.28, wz); g.add(wheel);
+    var frame = new T.Mesh(new T.BoxGeometry(4.2, 0.12, 1.4), steel); frame.position.y = 0.5; g.add(frame);
+    var drawbar = new T.Mesh(new T.BoxGeometry(0.7, 0.08, 0.12), steel);
+    drawbar.position.set(-2.3, 0.46, 0); g.add(drawbar);
+    [-0.85, 0.85].forEach(function (wz) {
+      var wheel = new T.Mesh(new T.CylinderGeometry(0.26, 0.26, 0.2, 18), dark);
+      wheel.rotation.x = Math.PI / 2; wheel.position.set(0.8, 0.26, wz); g.add(wheel);
     });
     g.position.set(x, FLOOR, 0);
     return g;
@@ -252,7 +256,7 @@
     boat: {
       verdict: "Trailer boats to ~5.5 m fit the full 20ft, motor and all.",
       tag: "Full 20ft · $250/mo", half: false,
-      build: function (g) { g.add(boat(-0.35)); }
+      build: function (g) { g.add(boat(0)); }
     },
     tools: {
       verdict: "Shelves, chest and gear — a half container makes a solid lockup.",
